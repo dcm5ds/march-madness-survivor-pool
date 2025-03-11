@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('https://images.foxtv.com/static.fox9.com/www.fox9.com/content/uploads/2022/03/1280/720/March-Madness.jpg?ve=1&tl=1') no-repeat center center fixed;
+            background-size: cover; /* Ensures the image covers the whole page */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h1 {
+            color: #222;
+        }
+        .container {
+            max-width: 100%;
+            width: 80%; /* Controls width of the iframe */
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+        iframe {
+            width: 100%;
+            height: 1000px; /* You can reduce this value to make it smaller */
+            border: none;
+            transform: scale(0.9); /* Adjust the scale factor (0.8 = 80%) */
+            transform-origin: center center;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <iframe
+            src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLlmmGdw32AsEFZvencVnAoRAKnPPTrz0rzEq2jReBbGjCODauf1MYSsvEHk9QxsAFqiUFU7ZNqFRb/pubhtml?gid=2089089985&amp;single=true&amp;widget=true&amp;headers=false" 
+            allowfullscreen>
+        </iframe>
+    </div>
+</body>
+</html>
