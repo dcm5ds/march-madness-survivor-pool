@@ -20,15 +20,25 @@
         }
         .container {
             max-width: 100%;
-            width: 80%; /* Controls width of the iframe */
+            width: 80%;
             margin: auto;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            overflow-y: auto;
             display: flex;
             justify-content: center;
+            margin-bottom: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 1000px;
+            border: none;
+            transform: scale(0.9);
+            transform-origin: center center;
+            overflow: hidden;
+            clip-path: inset(30px 0 50px 0);
         }
         .nav-box {
             position: fixed;
@@ -50,14 +60,7 @@
         .nav-box a:hover {
             text-decoration: underline;
         }
-        iframe {
-            width: 100%;
-            height: 1000px; /* You can reduce this value to make it smaller */
-            border: none;
-            transform: scale(0.9); /* Adjust the scale factor (0.8 = 80%) */
-            transform-origin: center center;
-            overflow: hidden;
-        }
+
     </style>
 </head>
 <body>
