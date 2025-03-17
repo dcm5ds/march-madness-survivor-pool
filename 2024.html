@@ -16,6 +16,24 @@
             overflow-y: auto;
             position: relative;
         }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .back-button a {
+            text-decoration: none;
+            color: #007bff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .back-button a:hover {
+            text-decoration: underline;
+        }
         h1 {
             color: #222;
         }
@@ -41,38 +59,20 @@
             overflow: hidden;
             clip-path: inset(30px 0 50px 0);
         }
-        .nav-box {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-box a {
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .nav-box a:hover {
-            text-decoration: underline;
-        }
-
     </style>
 </head>
 <body>
-     <div class="nav-box">
-        <a href="https://dcm5ds.github.io/march-madness-survivor-pool/">← Back to Home</a>
+
+    <div class="back-button">
+        <a href="history.html">← Back to History</a>
     </div>
+
     <div class="container">
         <iframe
             src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQkvqjEAOOYSNTehpzh6RfjqHZ6J1vpYLCBBArgBc7TUkFe8bORKzTmU4HakIGrq7v8plY7gWujcq5M/pubhtml?gid=2089089985&amp;single=true&amp;widget=true&amp;headers=false" 
             allowfullscreen>
         </iframe>
-    </div>
+    </div>  
+
 </body>
 </html>
