@@ -20,6 +20,27 @@
         h1 {
             color: #222;
         }
+         /* Navigation Box */
+        .nav-box {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-box a {
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .nav-box a:hover {
+            text-decoration: underline;
+        }
         .container {
             max-width: 100%;
             width: 80%; /* Controls width of the iframe */
@@ -45,6 +66,10 @@
     </style>
 </head>
 <body>
+    <!-- Back to Home Navigation -->
+    <div class="nav-box">
+        <a href="https://dcm5ds.github.io/march-madness-survivor-pool/">← Back to Home</a>
+    </div>
     <div class="container">
         <iframe
             src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSLlmmGdw32AsEFZvencVnAoRAKnPPTrz0rzEq2jReBbGjCODauf1MYSsvEHk9QxsAFqiUFU7ZNqFRb/pubhtml?gid=2089089985&amp;single=true&amp;widget=true&amp;headers=false" 
