@@ -101,14 +101,34 @@
   <button onclick="submitPick()">Submit Pick</button>
 
   <p id="message"></p>
+
+  <!-- ADMIN PANEL STARTS HERE -->
+  <div class="admin">
+    <h3>Admin Controls</h3>
+
+    <label>
+      <input type="checkbox" id="lockToggle" onchange="toggleLock()">
+      Lock Picks
+    </label>
+
+    <br><br>
+
+    <label>Set Lock Time:</label>
+    <input type="datetime-local" id="lockTimeInput">
+    <button onclick="setLockTime()">Update Lock Time</button>
+  </div>
+  <!-- ADMIN PANEL ENDS HERE -->
+
 </div>
 
 <script type="module">
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+  getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
   authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
   projectId: "ncaa-tournament-survivor-pool",
@@ -117,57 +137,143 @@
   appId: "1:870538967309:web:89d2c0f88ea239eec19844"
 };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  window.switchTab = function(tab) {
-    document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.getElementById(tab).classList.add("active");
-    event.target.classList.add("active");
+/* --------------------------
+   TAB SWITCHING
+-------------------------- */
+window.switchTab = function(tab) {
+  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+  event.target.classList.add("active");
+}
+
+/* --------------------------
+   LOAD TEAMS
+-------------------------- */
+async function loadTeams() {
+  const snapshot = await getDocs(collection(db, "teams"));
+  const select = document.getElementById("teamSelect");
+  select.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const team = docSnap.data();
+    if (!team.eliminated) {
+      select.innerHTML += `<option value="${team.name}">${team.name}</option>`;
+    }
+  });
+}
+
+/* --------------------------
+   LOAD STANDINGS
+-------------------------- */
+async function loadStandings() {
+  const snapshot = await getDocs(collection(db, "players"));
+  const tbody = document.querySelector("#standingsTable tbody");
+  tbody.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    tbody.innerHTML += `
+      <tr>
+        <td>${data.name}</td>
+        <td>${data.status}</td>
+        <td>${data.currentPick || ""}</td>
+      </tr>
+    `;
+  });
+}
+
+/* --------------------------
+   SUBMIT PICK
+-------------------------- */
+window.submitPick = async function() {
+
+  const name = document.getElementById("playerName").value.trim();
+  const team = document.getElementById("teamSelect").value;
+  const message = document.getElementById("message");
+
+  if (!name) {
+    message.innerText = "Enter your name.";
+    return;
   }
 
-  async function loadStandings() {
-    const snapshot = await getDocs(collection(db, "players"));
-    const tbody = document.querySelector("#standingsTable tbody");
-    tbody.innerHTML = "";
+  const settingsSnap = await getDoc(doc(db, "settings", "global"));
+  const settings = settingsSnap.data();
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      tbody.innerHTML += `
-        <tr>
-          <td>${data.name}</td>
-          <td>${data.status}</td>
-          <td>${data.currentPick || ""}</td>
-        </tr>
-      `;
-    });
+  // LOCK CHECK
+  if (settings?.picksLocked) {
+    message.innerText = "Picks are locked.";
+    return;
   }
 
-  window.submitPick = async function() {
-
-    const name = document.getElementById("playerName").value;
-    const team = document.getElementById("teamSelect").value;
-
-    const settingsSnap = await getDoc(doc(db, "settings", "global"));
-    const settings = settingsSnap.data();
-
-    if (settings?.picksLocked) {
-      document.getElementById("message").innerText = "Picks are locked.";
+  // LOCK TIME CHECK
+  if (settings?.lockTime) {
+    const now = new Date();
+    const lockTime = settings.lockTime.toDate();
+    if (now >= lockTime) {
+      message.innerText = "Picks are locked for today.";
       return;
     }
-
-    await setDoc(doc(db, "players", name), {
-      name: name,
-      currentPick: team,
-      status: "alive"
-    }, { merge: true });
-
-    document.getElementById("message").innerText = "Pick Submitted - Good Luck!";
-    loadStandings();
   }
 
+  // DUPLICATE TEAM CHECK
+  const playersSnap = await getDocs(collection(db, "players"));
+  let duplicate = false;
+
+  playersSnap.forEach(docSnap => {
+    if (docSnap.data().currentPick === team) {
+      duplicate = true;
+    }
+  });
+
+  if (duplicate) {
+    message.innerText = "That team has already been selected.";
+    return;
+  }
+
+  // SAVE PICK
+  await setDoc(doc(db, "players", name), {
+    name: name,
+    currentPick: team,
+    status: "alive",
+    pickHistory: [team]
+  }, { merge: true });
+
+  message.innerText = "Pick Submitted - Good Luck!";
+
   loadStandings();
+};
+
+/* --------------------------
+   ADMIN FUNCTIONS
+-------------------------- */
+window.toggleLock = async function() {
+  const lock = document.getElementById("lockToggle").checked;
+  await updateDoc(doc(db, "settings", "global"), {
+    picksLocked: lock
+  });
+  alert("Lock updated.");
+};
+
+window.setLockTime = async function() {
+  const input = document.getElementById("lockTimeInput").value;
+  const date = new Date(input);
+
+  await updateDoc(doc(db, "settings", "global"), {
+    lockTime: date
+  });
+
+  alert("Lock time updated.");
+};
+
+/* --------------------------
+   INITIAL LOAD
+-------------------------- */
+loadStandings();
+loadTeams();
 
 </script>
 
