@@ -209,7 +209,6 @@ window.submitPick = async function() {
     return;
   }
 
-  // LOCK TIME CHECK
   if (settings?.lockTime) {
     const now = new Date();
     const lockTime = settings.lockTime.toDate();
@@ -219,27 +218,30 @@ window.submitPick = async function() {
     }
   }
 
-  // DUPLICATE TEAM CHECK
-  const playersSnap = await getDocs(collection(db, "players"));
-  let duplicate = false;
+  // GET PLAYER RECORD
+  const playerRef = doc(db, "players", name);
+  const playerSnap = await getDoc(playerRef);
 
-  playersSnap.forEach(docSnap => {
-    if (docSnap.data().currentPick === team) {
-      duplicate = true;
+  let pickHistory = [];
+
+  if (playerSnap.exists()) {
+    pickHistory = playerSnap.data().pickHistory || [];
+
+    // PREVENT SAME TEAM TWICE
+    if (pickHistory.includes(team)) {
+      message.innerText = "You have already used that team.";
+      return;
     }
-  });
-
-  if (duplicate) {
-    message.innerText = "That team has already been selected.";
-    return;
   }
 
-  // SAVE PICK
-  await setDoc(doc(db, "players", name), {
+  // ADD NEW PICK TO HISTORY
+  pickHistory.push(team);
+
+  await setDoc(playerRef, {
     name: name,
     currentPick: team,
     status: "alive",
-    pickHistory: [team]
+    pickHistory: pickHistory
   }, { merge: true });
 
   message.innerText = "Pick Submitted - Good Luck!";
