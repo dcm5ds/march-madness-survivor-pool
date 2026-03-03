@@ -1,194 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 NCAA Tournament Survivor Pool</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: url('https://www.golden1center.com/wp-content/uploads/2023/09/march-madness-main-dd0a346d2e-1130x600.jpeg') no-repeat center center fixed;
-            background-size: cover;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+  <title>March Madness Survivor Pool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .table-of-contents {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 220px;
-        }
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
-        .table-of-contents h2 {
-            margin: 0;
-            font-size: 22px;
-            text-align: center;
-        }
-
-        .table-of-contents ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-
-        .table-of-contents li {
-            margin: 10px 0;
-        }
-
-        .table-of-contents a {
-            text-decoration: none;
-            color: #007bff;
-            font-size: 18px;
-            font-weight: bold;
-            display: block;
-            text-align: center;
-        }
-
-        .table-of-contents a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-    max-width: 800px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: left;
-    font-family: Arial, sans-serif;
-}
-
-h1 {
-    text-align: center;
-    color: #134611; /* Dark green */
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-h2 {
-    color: #222;
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 20px;
-    border-bottom: 2px solid #ddd; /* Subtle underline */
-    padding-bottom: 5px;
-}
-
-p {
-    font-size: 18px;
-    line-height: 1.6;
-    color: #333; /* Softer black */
-    margin-bottom: 15px;
-}
-
-ul {
-    font-size: 18px;
-    line-height: 1.6;
-    color: #333;
-    padding-left: 20px;
-}
-
-li {
-    margin-bottom: 10px;
-}
-
-a {
-    color: #007bff;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-
-        h1 {
-            text-align: center;
-            color: #222;
-        }
-
-        .instructions {
-            text-align: left;
-        }
-
-        .instructions h2 {
-            color: #004d00;
-        }
-        .logo {
-    width: 100%;
-    max-width: 350px; /* Shrinks the image */
-    height: auto; /* Maintains aspect ratio */
-    display: block;
-    margin: 10px auto; /* Centers the image */
-}
-        .venmo-button {
-        background-color: #1c4f7c; /* Venmo blue */
-        color: white;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 5px;
-        font-size: 16px;
-    }
-    .venmo-button:hover {
-        background-color: #164b6f;
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      background: #f5f5f5;
     }
 
-    </style>
+    .tabs {
+      display: flex;
+      background: #134611;
+    }
+
+    .tab {
+      padding: 15px;
+      color: white;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+    }
+
+    .tab.active {
+      background: #1f7a1f;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 20px;
+      display: none;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #134611;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .admin {
+      margin-top: 40px;
+      padding: 15px;
+      border: 2px dashed #aaa;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Table of Contents Navigation -->
-    <div class="table-of-contents">
-        <h2>Navigation</h2>
-        <ul>
-            <li><a href="contact-info-submission.html">Submit Contact Info</a></li>
-            <li><a href="pool.html">Pool</a></li>
-            <li><a href="pick-submission.html">Enter Picks</a></li>
-            <li><a href="history.html">History</a></li>
-        </ul>
-    </div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('standings')">Standings</div>
+  <div class="tab" onclick="switchTab('pick')">Make a Pick</div>
+</div>
 
-    <!-- Main Content Section -->
-    <div class="container">
-        <h1>2025 NCAA Tournament Survivor Pool</h1>
+<div id="standings" class="content active">
+  <h2>Standings</h2>
+  <table id="standingsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Current Pick</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-         <!-- Logo -->
-        <img src="https://media.bizj.us/view/img/12659098/25-01495-2025-mff-logo-unveil-marquee-graphic*900x506x2151-1211-160-320.jpg" alt="March Madness 2025 Logo" class="logo">
+<div id="pick" class="content">
+  <h2>Submit Your Pick</h2>
 
-        <div class="instructions">
-            <p>For those that haven’t played before, the idea is to pick one team each day to advance in the tournament. If they win, you move on; if they lose, you’re out—no buying back in.</p>
-            <p>Once you’ve picked a team, you cannot pick them again. If you run out of teams to pick, you are considered out if there are still others alive.</p>
-            <p>Winner takes all if there is no tie. In the event of a tie, the pot will be split up by adding up the seeds of the correct picks.</p>
+  <input type="text" id="playerName" placeholder="Your Name">
+  <br><br>
 
-            <h2>How to Play</h2>
-            <ul>
-                <li>Fill out your contact information using <a href="contact-info-submission.html">this link</a>.</li>
-                <li>Venmo $5 to <a href="https://venmo.com/u/David-McQuillen" target="_blank" class="venmo-button">@David-McQuillen</a>. Entry fee is due this Friday at noon.</li>
-                <li>If you don’t have Venmo, shoot me a text and we can figure something out.</li>
-                <li>Make your picks using the <a href="pick-submission.html">Pick Submission page</a>.</li>
-                <li>When submitting, your name must match the contact info supplied in Step 1.</li>
-                <li>You can make any number of submissions if you change your mind, up until the tipoff of the first game that day.</li>
-                <li>Once a valid selection has been made, you will see "Pick Submitted" next to your name in the pool.</li>
-                <li>After the cutoff time each day, the final picks for the entire pool will be revealed.</li>
-                <li>Picks are invalid if you have already picked that team, or if the submission timestamp is after the cutoff time.</li>
-            </ul>
+  <select id="teamSelect"></select>
+  <br>
 
-            <h2>Follow the Live Pool Results</h2>
-            <p>Use <a href="pool.html">this link</a> to track results.</p>
+  <button onclick="submitPick()">Submit Pick</button>
 
-            <h2>Good Luck! My phone number is (703) 424-3097 if you need anything.</h2>
-        </div>
-    </div>
+  <p id="message"></p>
+</div>
+
+<script type="module">
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
+  authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
+  projectId: "ncaa-tournament-survivor-pool",
+  storageBucket: "ncaa-tournament-survivor-pool.firebasestorage.app",
+  messagingSenderId: "870538967309",
+  appId: "1:870538967309:web:89d2c0f88ea239eec19844"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.switchTab = function(tab) {
+    document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(tab).classList.add("active");
+    event.target.classList.add("active");
+  }
+
+  async function loadStandings() {
+    const snapshot = await getDocs(collection(db, "players"));
+    const tbody = document.querySelector("#standingsTable tbody");
+    tbody.innerHTML = "";
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      tbody.innerHTML += `
+        <tr>
+          <td>${data.name}</td>
+          <td>${data.status}</td>
+          <td>${data.currentPick || ""}</td>
+        </tr>
+      `;
+    });
+  }
+
+  window.submitPick = async function() {
+
+    const name = document.getElementById("playerName").value;
+    const team = document.getElementById("teamSelect").value;
+
+    const settingsSnap = await getDoc(doc(db, "settings", "global"));
+    const settings = settingsSnap.data();
+
+    if (settings?.picksLocked) {
+      document.getElementById("message").innerText = "Picks are locked.";
+      return;
+    }
+
+    await setDoc(doc(db, "players", name), {
+      name: name,
+      currentPick: team,
+      status: "alive"
+    }, { merge: true });
+
+    document.getElementById("message").innerText = "Pick Submitted - Good Luck!";
+    loadStandings();
+  }
+
+  loadStandings();
+
+</script>
 
 </body>
 </html>
