@@ -118,7 +118,15 @@
     <button onclick="setLockTime()">Update Lock Time</button>
 
     <br><br>
+
+<label>Set Current Day:</label>
+<input type="text" id="currentDayInput" placeholder="Day1">
+<button onclick="setCurrentDay()">Update Day</button>
+
+<br><br>
+
 <button onclick="eliminateTeam()">Eliminate Team</button>
+    <br><br>
   </div>
   <!-- ADMIN PANEL ENDS HERE -->
 
@@ -303,11 +311,7 @@ window.submitPick = async function() {
 /* --------------------------
    ADMIN FUNCTIONS
 -------------------------- */
-<br><br>
-<label>Set Current Day:</label>
-<input type="text" id="currentDayInput" placeholder="Day1">
-<button onclick="setCurrentDay()">Update Day</button>
-  
+ 
   window.toggleLock = async function() {
   const lock = document.getElementById("lockToggle").checked;
   await updateDoc(doc(db, "settings", "global"), {
