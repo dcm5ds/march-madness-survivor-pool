@@ -303,7 +303,12 @@ window.submitPick = async function() {
 /* --------------------------
    ADMIN FUNCTIONS
 -------------------------- */
-window.toggleLock = async function() {
+<br><br>
+<label>Set Current Day:</label>
+<input type="text" id="currentDayInput" placeholder="Day1">
+<button onclick="setCurrentDay()">Update Day</button>
+  
+  window.toggleLock = async function() {
   const lock = document.getElementById("lockToggle").checked;
   await updateDoc(doc(db, "settings", "global"), {
     picksLocked: lock
@@ -321,16 +326,42 @@ window.setLockTime = async function() {
 
   alert("Lock time updated.");
 };
-window.eliminateTeam = async function() {
+window.setCurrentDay = async function() {
+
+  const day = document.getElementById("currentDayInput").value.trim();
+
+  if (!day) {
+    alert("Enter a day name.");
+    return;
+  }
+
+  await updateDoc(doc(db, "settings", "global"), {
+    currentDay: day
+  });
+
+  alert("Current day updated to " + day);
+};
+  
+  window.eliminateTeam = async function() {
 
   const team = prompt("Enter team to eliminate:");
-
   if (!team) return;
 
   const settingsSnap = await getDoc(doc(db, "settings", "global"));
   const settings = settingsSnap.data();
   const currentDay = settings.currentDay;
 
+  if (!currentDay) {
+    alert("Current day not set.");
+    return;
+  }
+
+  // 1️⃣ Mark team eliminated
+  await updateDoc(doc(db, "teams", team), {
+    eliminated: true
+  });
+
+  // 2️⃣ Eliminate players who picked them today
   const playersSnap = await getDocs(collection(db, "players"));
 
   for (const docSnap of playersSnap.docs) {
@@ -344,8 +375,10 @@ window.eliminateTeam = async function() {
     }
   }
 
-  alert(team + " eliminated. Players updated.");
+  alert(team + " eliminated. Standings updated.");
+
   loadStandings();
+  loadTeams(); // refresh dropdown
 };
 /* --------------------------
    INITIAL LOAD
