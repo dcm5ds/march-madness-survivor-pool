@@ -9,67 +9,75 @@
 
   <style>
     body {
-      font-family: Arial;
-      margin: 0;
-      background: #f5f5f5;
-    }
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: linear-gradient(to bottom, #0b3d0b, #1f7a1f);
+  color: white;
+}
 
-    .tabs {
-      display: flex;
-      background: #134611;
-    }
+.tabs {
+  display: flex;
+  background: #0b3d0b;
+}
 
-    .tab {
-      padding: 15px;
-      color: white;
-      cursor: pointer;
-      flex: 1;
-      text-align: center;
-    }
+.tab {
+  padding: 15px;
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-    .tab.active {
-      background: #1f7a1f;
-      font-weight: bold;
-    }
+.tab:hover {
+  background: #1f7a1f;
+}
 
-    .content {
-      padding: 20px;
-      display: none;
-    }
+.tab.active {
+  background: #2e8b2e;
+  font-weight: bold;
+}
 
-    .content.active {
-      display: block;
-    }
+.content {
+  background: white;
+  color: black;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 10px;
+}
 
-    button {
-      padding: 10px 15px;
-      background: #134611;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+th {
+  background: #134611;
+  color: white;
+}
 
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
-      text-align: left;
-    }
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
 
-    .admin {
-      margin-top: 40px;
-      padding: 15px;
-      border: 2px dashed #aaa;
-    }
-  </style>
-</head>
+tr.alive {
+  background: #e6ffe6;
+}
+
+tr.eliminated {
+  background: #ffe6e6;
+  color: #999;
+}
+
+.admin {
+  margin-top: 40px;
+  padding: 15px;
+  border: 2px dashed #aaa;
+}
 <body>
 
+<div style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:18px;" onclick="unlockAdmin()">⚙</div>
+  
 <div class="tabs">
   <div class="tab active" onclick="switchTab('standings')">Standings</div>
   <div class="tab" onclick="switchTab('pick')">Make a Pick</div>
@@ -77,6 +85,7 @@
 
 <div id="standings" class="content active">
   <h2>Standings</h2>
+  <h3 id="remainingCount">Remaining Players: 0</h3>
   <table id="standingsTable">
     <thead>
       <tr>
@@ -103,7 +112,7 @@
   <p id="message"></p>
 
   <!-- ADMIN PANEL STARTS HERE -->
-  <div class="admin">
+  <div class="admin" id="adminPanel" style="display:none;">
     <h3>Admin Controls</h3>
 
     <label>
@@ -136,7 +145,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-  getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc 
+  getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -182,51 +191,62 @@ async function loadTeams() {
 -------------------------- */
 async function loadStandings() {
 
-  const settingsSnap = await getDoc(doc(db, "settings", "global"));
-  const settings = settingsSnap.data();
-  const currentDay = settings.currentDay;
+  const playersRef = collection(db, "players");
 
-  const snapshot = await getDocs(collection(db, "players"));
-  const tbody = document.querySelector("#standingsTable tbody");
-  const thead = document.querySelector("#standingsTable thead");
+  onSnapshot(playersRef, async (snapshot) => {
 
-  let allDays = [];
+    const settingsSnap = await getDoc(doc(db, "settings", "global"));
+    const settings = settingsSnap.data();
 
-  snapshot.forEach(docSnap => {
-    const picks = docSnap.data().picks || {};
-    Object.keys(picks).forEach(day => {
-      if (!allDays.includes(day)) {
-        allDays.push(day);
-      }
+    const tbody = document.querySelector("#standingsTable tbody");
+    const thead = document.querySelector("#standingsTable thead");
+
+    let allDays = [];
+    let aliveCount = 0;
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const picks = data.picks || {};
+
+      if (data.status === "alive") aliveCount++;
+
+      Object.keys(picks).forEach(day => {
+        if (!allDays.includes(day)) {
+          allDays.push(day);
+        }
+      });
     });
-  });
 
-  allDays.sort();
+    allDays.sort();
 
-  thead.innerHTML = `
-    <tr>
-      <th>Name</th>
-      <th>Status</th>
-      ${allDays.map(day => `<th>${day}</th>`).join("")}
-    </tr>
-  `;
-
-  tbody.innerHTML = "";
-
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const picks = data.picks || {};
-
-    tbody.innerHTML += `
+    thead.innerHTML = `
       <tr>
-        <td>${data.name}</td>
-        <td>${data.status}</td>
-        ${allDays.map(day => `<td>${picks[day] || ""}</td>`).join("")}
+        <th>Name</th>
+        <th>Status</th>
+        ${allDays.map(day => `<th>${day}</th>`).join("")}
       </tr>
     `;
+
+    tbody.innerHTML = "";
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const picks = data.picks || {};
+
+      tbody.innerHTML += `
+        <tr class="${data.status}">
+          <td>${data.name}</td>
+          <td>${data.status}</td>
+          ${allDays.map(day => `<td>${picks[day] || ""}</td>`).join("")}
+        </tr>
+      `;
+    });
+
+    document.getElementById("remainingCount").innerText =
+      "Remaining Players: " + aliveCount;
+
   });
 }
-
 /* --------------------------
    SUBMIT PICK
 -------------------------- */
