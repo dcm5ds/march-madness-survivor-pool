@@ -116,6 +116,9 @@
     <label>Set Lock Time:</label>
     <input type="datetime-local" id="lockTimeInput">
     <button onclick="setLockTime()">Update Lock Time</button>
+
+    <br><br>
+<button onclick="eliminateTeam()">Eliminate Team</button>
   </div>
   <!-- ADMIN PANEL ENDS HERE -->
 
@@ -170,17 +173,47 @@ async function loadTeams() {
    LOAD STANDINGS
 -------------------------- */
 async function loadStandings() {
+
+  const settingsSnap = await getDoc(doc(db, "settings", "global"));
+  const settings = settingsSnap.data();
+  const currentDay = settings.currentDay;
+
   const snapshot = await getDocs(collection(db, "players"));
   const tbody = document.querySelector("#standingsTable tbody");
+  const thead = document.querySelector("#standingsTable thead");
+
+  let allDays = [];
+
+  snapshot.forEach(docSnap => {
+    const picks = docSnap.data().picks || {};
+    Object.keys(picks).forEach(day => {
+      if (!allDays.includes(day)) {
+        allDays.push(day);
+      }
+    });
+  });
+
+  allDays.sort();
+
+  thead.innerHTML = `
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+      ${allDays.map(day => `<th>${day}</th>`).join("")}
+    </tr>
+  `;
+
   tbody.innerHTML = "";
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
+    const picks = data.picks || {};
+
     tbody.innerHTML += `
       <tr>
         <td>${data.name}</td>
         <td>${data.status}</td>
-        <td>${data.currentPick || ""}</td>
+        ${allDays.map(day => `<td>${picks[day] || ""}</td>`).join("")}
       </tr>
     `;
   });
@@ -202,8 +235,13 @@ window.submitPick = async function() {
 
   const settingsSnap = await getDoc(doc(db, "settings", "global"));
   const settings = settingsSnap.data();
+  const currentDay = settings.currentDay;
 
-  // LOCK CHECK
+  if (!currentDay) {
+    message.innerText = "Admin has not set the current day.";
+    return;
+  }
+
   if (settings?.picksLocked) {
     message.innerText = "Picks are locked.";
     return;
@@ -218,34 +256,47 @@ window.submitPick = async function() {
     }
   }
 
-  // GET PLAYER RECORD
   const playerRef = doc(db, "players", name);
   const playerSnap = await getDoc(playerRef);
 
   let pickHistory = [];
+  let picks = {};
+  let status = "alive";
 
   if (playerSnap.exists()) {
-    pickHistory = playerSnap.data().pickHistory || [];
+    const data = playerSnap.data();
 
-    // PREVENT SAME TEAM TWICE
+    if (data.status === "eliminated") {
+      message.innerText = "You have been eliminated.";
+      return;
+    }
+
+    pickHistory = data.pickHistory || [];
+    picks = data.picks || {};
+    status = data.status;
+
     if (pickHistory.includes(team)) {
       message.innerText = "You have already used that team.";
       return;
     }
+
+    if (picks[currentDay]) {
+      message.innerText = "You already submitted for today.";
+      return;
+    }
   }
 
-  // ADD NEW PICK TO HISTORY
   pickHistory.push(team);
+  picks[currentDay] = team;
 
   await setDoc(playerRef, {
     name: name,
-    currentPick: team,
-    status: "alive",
-    pickHistory: pickHistory
+    status: status,
+    pickHistory: pickHistory,
+    picks: picks
   }, { merge: true });
 
   message.innerText = "Pick Submitted - Good Luck!";
-
   loadStandings();
 };
 
@@ -270,7 +321,32 @@ window.setLockTime = async function() {
 
   alert("Lock time updated.");
 };
+window.eliminateTeam = async function() {
 
+  const team = prompt("Enter team to eliminate:");
+
+  if (!team) return;
+
+  const settingsSnap = await getDoc(doc(db, "settings", "global"));
+  const settings = settingsSnap.data();
+  const currentDay = settings.currentDay;
+
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  for (const docSnap of playersSnap.docs) {
+    const data = docSnap.data();
+    const picks = data.picks || {};
+
+    if (picks[currentDay] === team && data.status === "alive") {
+      await updateDoc(doc(db, "players", data.name), {
+        status: "eliminated"
+      });
+    }
+  }
+
+  alert(team + " eliminated. Players updated.");
+  loadStandings();
+};
 /* --------------------------
    INITIAL LOAD
 -------------------------- */
