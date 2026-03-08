@@ -196,39 +196,7 @@
       padding: 18px;
       margin-bottom: 18px;
     }
-.home-hero{
-text-align:center;
-margin-bottom:30px;
-}
 
-.pool-logo{
-width:220px;
-max-width:80%;
-margin-bottom:10px;
-}
-
-.home-buttons{
-margin-top:20px;
-display:flex;
-justify-content:center;
-gap:15px;
-flex-wrap:wrap;
-}
-
-.home-button{
-background:#2e8b2e;
-border:none;
-color:white;
-font-size:18px;
-padding:14px 24px;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.home-button:hover{
-background:#1f6b1f;
-}
     .home-card h3 {
       margin-bottom: 10px;
       color: #134611;
@@ -245,11 +213,30 @@ background:#1f6b1f;
       padding-left: 22px;
     }
 
+    .signup-card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .signup-card label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #134611;
+    }
+
     input, select, button {
       font: inherit;
     }
 
     input[type="text"],
+    input[type="email"],
+    input[type="tel"],
     input[type="datetime-local"],
     select {
       padding: 10px;
@@ -259,6 +246,12 @@ background:#1f6b1f;
       width: 260px;
       max-width: 100%;
       box-sizing: border-box;
+    }
+
+    .signup-card input[type="text"],
+    .signup-card input[type="email"],
+    .signup-card input[type="tel"] {
+      width: 100%;
     }
 
     button.action-button {
@@ -274,6 +267,12 @@ background:#1f6b1f;
 
     button.action-button:hover {
       background: #0f3810;
+    }
+
+    .success-message {
+      margin-top: 14px;
+      color: #134611;
+      font-weight: 700;
     }
 
     .admin {
@@ -455,6 +454,8 @@ background:#1f6b1f;
       }
 
       input[type="text"],
+      input[type="email"],
+      input[type="tel"],
       input[type="datetime-local"],
       select {
         width: 100%;
@@ -498,6 +499,9 @@ background:#1f6b1f;
     <button class="menu-link active" id="menu-home" type="button" onclick="switchPage('home')">
       Home
     </button>
+    <button class="menu-link" id="menu-signup" type="button" onclick="switchPage('signup')">
+      Sign Up
+    </button>
     <button class="menu-link" id="menu-standings" type="button" onclick="switchPage('standings')">
       Standings
     </button>
@@ -506,45 +510,52 @@ background:#1f6b1f;
     </button>
   </nav>
 
-<div id="home" class="content active">
+  <div id="home" class="content active">
+    <div class="hero">
+      <img
+        class="hero-logo"
+        src="data:image/jpeg;base64,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"
+        alt="NCAA Tournament Survivor 2026 logo"
+      />
 
-  <div class="home-hero">
+      <h1 class="hero-title">NCAA Tournament Survivor 2026</h1>
+      <p class="hero-subtitle">
+        Welcome to the pool. Review the rules, sign up, check the standings, and submit your picks.
+      </p>
 
-    <img class="pool-logo"
-    src="data:image/jpeg;base64,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">
-
-    <h1>NCAA Tournament Survivor 2026</h1>
-
-    <div class="home-buttons">
-      <button onclick="switchPage('standings')" class="home-button">
-        View Standings
-      </button>
-
-      <button onclick="switchPage('pick')" class="home-button">
-        Make a Pick
-      </button>
+      <div class="hero-buttons">
+        <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
+        <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
+        <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
+      </div>
     </div>
 
-  </div>
+    <div class="home-card">
+      <h3>How It Works</h3>
+      <p>
+        In this pool, each player selects one team for each day of tournament games. If your team wins,
+        you survive and move on. If your team loses, or if you fail to submit a pick before the deadline,
+        you are eliminated.
+      </p>
+    </div>
 
-  <div class="home-card">
-    <h3>How It Works</h3>
-    <p>
-      For those that haven’t played before, the idea is to pick one team each day to advance in the tournament.  
-      If they win you move on, if they lose you’re out - no buying back in.
-      Once you’ve picked a team, you cannot pick them again.  If you run out of teams to pick, you are considered out if there are still others alive.
-      Winner takes all if there is no tie.  In the event of a tie, the pot will be split up by adding up the seeds of the correct picks.  
-      If you miss a pick before lock time, you are eliminated.
-
-    </p>
-  </div>
-
-</div>
+    <div class="home-card">
+      <h3>Basic Rules</h3>
+      <ul>
+        <li>You may pick only one team for each day of games.</li>
+        <li>You cannot use the same team more than once during the tournament.</li>
+        <li>You may change your pick as many times as you want before that day locks.</li>
+        <li>Once a day's picks lock, no more changes are allowed for that day.</li>
+        <li>If your selected team loses, you are eliminated.</li>
+        <li>If you do not submit a pick before the lock time, you are eliminated.</li>
+      </ul>
+    </div>
 
     <div class="home-card">
       <h3>Website Pages</h3>
       <ul>
         <li><strong>Home:</strong> Pool rules and instructions.</li>
+        <li><strong>Sign Up:</strong> Join the pool.</li>
         <li><strong>Standings:</strong> View all players and their progress by day.</li>
         <li><strong>Make a Pick:</strong> Submit or change your pick before the lock time.</li>
       </ul>
@@ -562,14 +573,34 @@ background:#1f6b1f;
     </div>
 
     <div class="home-card">
-      <h3>How to Submit a Pick</h3>
+      <h3>How to Join and Submit a Pick</h3>
       <ol>
-        <li>Go to <strong>Make a Pick</strong>.</li>
+        <li>Go to <strong>Sign Up</strong> and enter your information.</li>
+        <li>Then go to <strong>Make a Pick</strong>.</li>
         <li>Enter your name exactly the same way each time.</li>
         <li>Select the day you want to make a pick for.</li>
         <li>Select an available team.</li>
         <li>Click <strong>Submit Pick</strong>.</li>
       </ol>
+    </div>
+  </div>
+
+  <div id="signup" class="content">
+    <h2>Sign Up for the Pool</h2>
+
+    <div class="signup-card">
+      <label for="signupName">Name:</label>
+      <input type="text" id="signupName" placeholder="Enter your full name" />
+
+      <label for="signupEmail">Email:</label>
+      <input type="email" id="signupEmail" placeholder="Enter your email" />
+
+      <label for="signupPhone">Phone Number:</label>
+      <input type="tel" id="signupPhone" placeholder="Enter your phone number" />
+
+      <button class="action-button" type="button" onclick="submitSignup()">Submit</button>
+
+      <p id="signupMessage" class="success-message"></p>
     </div>
   </div>
 
@@ -1027,6 +1058,56 @@ background:#1f6b1f;
         "Remaining Players: " + aliveCount;
     }
 
+    window.submitSignup = async function() {
+      const name = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const phone = document.getElementById("signupPhone").value.trim();
+      const signupMessage = document.getElementById("signupMessage");
+
+      signupMessage.innerText = "";
+
+      if (!name) {
+        signupMessage.innerText = "Please enter your name.";
+        return;
+      }
+
+      if (!email) {
+        signupMessage.innerText = "Please enter your email.";
+        return;
+      }
+
+      if (!phone) {
+        signupMessage.innerText = "Please enter your phone number.";
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      let existingData = {};
+      if (playerSnap.exists()) {
+        existingData = playerSnap.data();
+      }
+
+      await setDoc(
+        playerRef,
+        {
+          name: name,
+          email: email,
+          phone: phone,
+          status: existingData.status || "alive",
+          picks: existingData.picks || {}
+        },
+        { merge: true }
+      );
+
+      signupMessage.innerText = "Entry received - welcome to Survivor. Good Luck!";
+
+      document.getElementById("signupName").value = "";
+      document.getElementById("signupEmail").value = "";
+      document.getElementById("signupPhone").value = "";
+    };
+
     window.submitPick = async function() {
       const name = document.getElementById("playerName").value.trim();
       const selectedDay = document.getElementById("daySelect").value;
@@ -1091,9 +1172,11 @@ background:#1f6b1f;
 
       let picks = {};
       let status = "alive";
+      let existingPlayerData = {};
 
       if (playerSnap.exists()) {
         const data = playerSnap.data();
+        existingPlayerData = data;
         picks = data.picks || {};
         status = data.status || "alive";
 
@@ -1118,6 +1201,8 @@ background:#1f6b1f;
         playerRef,
         {
           name: name,
+          email: existingPlayerData.email || "",
+          phone: existingPlayerData.phone || "",
           status: status,
           picks: picks
         },
