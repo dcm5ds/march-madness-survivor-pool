@@ -13,42 +13,112 @@
       color: white;
     }
 
-    .admin-gear {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      cursor: pointer;
-      font-size: 18px;
-      z-index: 1000;
-    }
-
-    .tabs {
+    .topbar {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: #0b3d0b;
+      padding: 12px 16px;
       position: sticky;
       top: 0;
-      z-index: 500;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
-    .tab {
-      flex: 1;
-      padding: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.2s;
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .site-title {
+      font-size: 20px;
+      font-weight: 700;
       color: white;
-      font-weight: 600;
+    }
+
+    .hamburger {
       background: transparent;
       border: none;
+      color: white;
+      font-size: 26px;
+      cursor: pointer;
+      padding: 4px 8px;
     }
 
-    .tab:hover {
-      background: #1f7a1f;
+    .admin-gear {
+      cursor: pointer;
+      font-size: 20px;
+      color: white;
     }
 
-    .tab.active {
-      background: #2e8b2e;
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 260px;
+      height: 100%;
+      background: #123d12;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+      z-index: 2000;
+      transition: left 0.25s ease;
+      padding-top: 18px;
+    }
+
+    .side-menu.open {
+      left: 0;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      margin-bottom: 8px;
+    }
+
+    .menu-title {
+      font-size: 18px;
       font-weight: 700;
+      color: white;
+    }
+
+    .menu-close {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .menu-link {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 14px 18px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .menu-link:hover,
+    .menu-link.active {
+      background: #2e8b2e;
+    }
+
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 1500;
+      display: none;
+    }
+
+    .menu-overlay.show {
+      display: block;
     }
 
     .content {
@@ -65,8 +135,31 @@
       display: block;
     }
 
-    h2, h3 {
+    h1, h2, h3 {
       margin-top: 0;
+    }
+
+    .home-card {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .home-card h3 {
+      margin-bottom: 10px;
+      color: #134611;
+    }
+
+    .home-card p,
+    .home-card li {
+      line-height: 1.5;
+    }
+
+    .home-card ul {
+      margin-top: 8px;
+      padding-left: 22px;
     }
 
     input, select, button {
@@ -287,22 +380,97 @@
       .team-preview-list {
         grid-template-columns: 1fr;
       }
+
+      .site-title {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="admin-gear" onclick="unlockAdmin()">⚙</div>
-
-  <div class="tabs">
-    <button class="tab active" id="tab-standings" type="button" onclick="switchTab('standings')">
-      Standings
-    </button>
-    <button class="tab" id="tab-pick" type="button" onclick="switchTab('pick')">
-      Make a Pick
-    </button>
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" type="button" onclick="openMenu()">☰</button>
+      <div class="site-title">March Madness Survivor Pool</div>
+    </div>
+    <div class="admin-gear" onclick="unlockAdmin()">⚙</div>
   </div>
 
-  <div id="standings" class="content active">
+  <div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+
+  <nav id="sideMenu" class="side-menu">
+    <div class="menu-header">
+      <div class="menu-title">Menu</div>
+      <button class="menu-close" type="button" onclick="closeMenu()">×</button>
+    </div>
+
+    <button class="menu-link active" id="menu-home" type="button" onclick="switchPage('home')">
+      Home
+    </button>
+    <button class="menu-link" id="menu-standings" type="button" onclick="switchPage('standings')">
+      Standings
+    </button>
+    <button class="menu-link" id="menu-pick" type="button" onclick="switchPage('pick')">
+      Make a Pick
+    </button>
+  </nav>
+
+  <div id="home" class="content active">
+    <h1>Welcome to the March Madness Survivor Pool</h1>
+
+    <div class="home-card">
+      <h3>How It Works</h3>
+      <p>
+        In this pool, each player selects one team per game day. If your team wins, you survive and move on.
+        If your team loses, or if you fail to submit a pick before the deadline, you are eliminated.
+      </p>
+    </div>
+
+    <div class="home-card">
+      <h3>Basic Rules</h3>
+      <ul>
+        <li>You may pick only one team for each day of games.</li>
+        <li>You cannot use the same team more than once during the tournament.</li>
+        <li>You may change your pick as many times as you want before that day's picks lock.</li>
+        <li>Once picks lock for a day, no more changes are allowed for that day.</li>
+        <li>If your selected team loses, you are eliminated.</li>
+        <li>If you do not submit a pick before the lock time, you are eliminated.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>Website Pages</h3>
+      <ul>
+        <li><strong>Home:</strong> Pool rules and instructions.</li>
+        <li><strong>Standings:</strong> View all players and their progress by day.</li>
+        <li><strong>Make a Pick:</strong> Submit or change your pick before the lock time.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>Standings Display</h3>
+      <ul>
+        <li>Before a day's picks are revealed, standings will show <strong>Pick Submitted</strong> or <strong>No Pick</strong>.</li>
+        <li>After the day's reveal time, the actual team picked will appear.</li>
+        <li>Winning picks are shown in <strong>green</strong>.</li>
+        <li>Losing picks are shown in <strong>red</strong>.</li>
+        <li>Once a player is eliminated, later days are blacked out.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>How to Submit a Pick</h3>
+      <ol>
+        <li>Go to <strong>Make a Pick</strong>.</li>
+        <li>Enter your name exactly the same way each time.</li>
+        <li>Select the day you want to make a pick for.</li>
+        <li>Select an available team.</li>
+        <li>Click <strong>Submit Pick</strong>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div id="standings" class="content">
     <h2>Standings</h2>
     <h3 id="remainingCount">Remaining Players: 0</h3>
 
@@ -411,12 +579,29 @@
     let cachedDays = [];
     let cachedPlayers = [];
 
-    window.switchTab = function(tab) {
-      document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    window.openMenu = function() {
+      document.getElementById("sideMenu").classList.add("open");
+      document.getElementById("menuOverlay").classList.add("show");
+    };
 
-      document.getElementById(tab).classList.add("active");
-      document.getElementById("tab-" + tab).classList.add("active");
+    window.closeMenu = function() {
+      document.getElementById("sideMenu").classList.remove("open");
+      document.getElementById("menuOverlay").classList.remove("show");
+    };
+
+    window.switchPage = function(page) {
+      document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+      });
+
+      document.querySelectorAll(".menu-link").forEach(link => {
+        link.classList.remove("active");
+      });
+
+      document.getElementById(page).classList.add("active");
+      document.getElementById("menu-" + page).classList.add("active");
+
+      closeMenu();
     };
 
     window.unlockAdmin = function() {
