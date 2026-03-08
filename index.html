@@ -172,6 +172,12 @@
       color: white !important;
     }
 
+    .hiddenPickCell {
+      color: #444;
+      font-style: italic;
+      font-weight: 600;
+    }
+
     .pick-cell {
       display: flex;
       align-items: center;
@@ -375,6 +381,33 @@
       `;
     }
 
+    function isDayRevealed(day) {
+      if (!day?.lockTime) return false;
+
+      const now = new Date();
+      const revealTime =
+        typeof day.lockTime.toDate === "function"
+          ? day.lockTime.toDate()
+          : new Date(day.lockTime);
+
+      return now >= revealTime;
+    }
+
+    function formatCutoff(day) {
+      if (!day?.lockTime) return day.cutoff || "";
+
+      try {
+        const dt =
+          typeof day.lockTime.toDate === "function"
+            ? day.lockTime.toDate()
+            : new Date(day.lockTime);
+
+        return dt.toLocaleString();
+      } catch {
+        return day.cutoff || "";
+      }
+    }
+
     async function getAllAvailableTeams() {
       const snapshot = await getDocs(collection(db, "teams"));
       let teams = [];
@@ -489,7 +522,7 @@
         thead.innerHTML = `
           <tr>
             <th></th>
-            ${days.map(day => `<th>${day.cutoff || ""}</th>`).join("")}
+            ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
           </tr>
           <tr>
             <th>Name</th>
@@ -513,6 +546,7 @@
             const pick = picks[day.id] || "";
             const winningTeams = day.winningTeams || [];
             const losingTeams = day.losingTeams || [];
+            const revealed = isDayRevealed(day);
 
             let cellClass = "";
             let cellContent = "";
@@ -520,8 +554,16 @@
             if (eliminatedReached) {
               cellClass = "eliminatedCell";
               cellContent = "Eliminated";
+            } else if (!revealed) {
+              if (pick) {
+                cellClass = "hiddenPickCell";
+                cellContent = "Pick Submitted";
+              } else {
+                cellClass = "hiddenPickCell";
+                cellContent = "No Pick";
+              }
             } else if (!pick) {
-              cellContent = "";
+              cellContent = "No Pick";
             } else if (losingTeams.includes(pick)) {
               cellClass = "lossCell";
               cellContent = renderPickCell(pick, teamsMap);
