@@ -82,6 +82,97 @@ td:first-child {
   padding: 15px;
   border: 2px dashed #aaa;
 }
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: white;
+}
+
+th, td {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+  min-width: 120px;
+}
+
+td:first-child, th:first-child {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 2;
+  text-align: left;
+  font-weight: bold;
+  min-width: 180px;
+}
+
+thead tr:first-child th {
+  background: #ffeb3b;
+  font-weight: bold;
+}
+
+thead tr:nth-child(2) th {
+  background: #ddd;
+}
+
+thead th:first-child {
+  z-index: 3;
+}
+
+.winCell {
+  background: #c8e6c9;
+  color: #1b5e20;
+  font-weight: bold;
+}
+
+.lossCell {
+  background: #ffcdd2;
+  color: #b71c1c;
+  font-weight: bold;
+}
+
+.eliminatedCell {
+  background: black;
+  color: white;
+}
+
+.pick-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.pick-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  th, td {
+    min-width: 100px;
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  td:first-child, th:first-child {
+    min-width: 140px;
+  }
+
+  .pick-logo {
+    width: 16px;
+    height: 16px;
+  }
+}
+  
     </style>
 <body>
 
@@ -95,12 +186,11 @@ td:first-child {
 <div id="standings" class="content active">
   <h2>Standings</h2>
   <h3 id="remainingCount">Remaining Players: 0</h3>
+  <div class="table-wrapper">
   <table id="standingsTable">
     <thead>
       <tr>
         <th>Name</th>
-        <th>Status</th>
-        <th>Current Pick</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -198,15 +288,37 @@ async function loadTeams() {
 /* --------------------------
    LOAD STANDINGS
 -------------------------- */
-async function loadStandings() {
+function renderPickCell(teamName, teamsMap) {
+  const logo = teamsMap[teamName]?.logo;
 
+  if (logo) {
+    return `
+      <div class="pick-cell">
+        <img src="${logo}" alt="${teamName}" class="pick-logo">
+        <span>${teamName}</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="pick-cell">
+      <span>${teamName}</span>
+    </div>
+  `;
+}
+  
+  async function loadStandings() {
   const playersRef = collection(db, "players");
 
-  onSnapshot(playersRef, async (snapshot) => {
-
-    const daysSnap = await getDocs(collection(db, "days"));
+  onSnapshot(playersRef, async (playerSnapshot) => {
+    const [daysSnap, teamsSnap] = await Promise.all([
+      getDocs(collection(db, "days")),
+      getDocs(collection(db, "teams"))
+    ]);
 
     let days = [];
+    let teamsMap = {};
+    let aliveCount = 0;
 
     daysSnap.forEach(docSnap => {
       days.push({
@@ -217,57 +329,69 @@ async function loadStandings() {
 
     days.sort((a, b) => a.order - b.order);
 
+    teamsSnap.forEach(docSnap => {
+      teamsMap[docSnap.id] = docSnap.data();
+    });
+
     const tbody = document.querySelector("#standingsTable tbody");
     const thead = document.querySelector("#standingsTable thead");
 
-    let aliveCount = 0;
-
-    // 🔹 BUILD HEADER (2 ROWS)
     thead.innerHTML = `
       <tr>
         <th></th>
-        ${days.map(day => `<th>${day.cutoff}</th>`).join("")}
+        ${days.map(day => `<th>${day.cutoff || ""}</th>`).join("")}
       </tr>
       <tr>
         <th>Name</th>
-        ${days.map(day => `<th>${day.label}</th>`).join("")}
+        ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
       </tr>
     `;
 
     tbody.innerHTML = "";
 
-    snapshot.forEach(docSnap => {
-
+    playerSnapshot.forEach(docSnap => {
       const data = docSnap.data();
       const picks = data.picks || {};
 
       if (data.status === "alive") aliveCount++;
 
+      let eliminatedReached = false;
       let row = `<tr>`;
+      row += `<td>${data.name || ""}</td>`;
 
-      row += `<td>${data.name}</td>`;
-
-      days.forEach(day => {
-
-        let value = picks[day.id] || "";
+      for (const day of days) {
+        const pick = picks[day.id] || "";
+        const winningTeams = day.winningTeams || [];
+        const losingTeams = day.losingTeams || [];
 
         let cellClass = "";
+        let cellContent = "";
 
-        if (data.status === "eliminated" && value) {
+        if (eliminatedReached) {
           cellClass = "eliminatedCell";
+          cellContent = "Eliminated";
+        } else if (!pick) {
+          cellContent = "";
+        } else if (losingTeams.includes(pick)) {
+          cellClass = "lossCell";
+          cellContent = renderPickCell(pick, teamsMap);
+          eliminatedReached = true;
+        } else if (winningTeams.includes(pick)) {
+          cellClass = "winCell";
+          cellContent = renderPickCell(pick, teamsMap);
+        } else {
+          cellContent = renderPickCell(pick, teamsMap);
         }
 
-        row += `<td class="${cellClass}">${value}</td>`;
-      });
+        row += `<td class="${cellClass}">${cellContent}</td>`;
+      }
 
       row += `</tr>`;
-
       tbody.innerHTML += row;
     });
 
     document.getElementById("remainingCount").innerText =
       "Remaining Players: " + aliveCount;
-
   });
 }
 /* --------------------------
