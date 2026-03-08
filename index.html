@@ -254,6 +254,13 @@
       width: 100%;
     }
 
+    .pick-form input[type="text"],
+    .pick-form input[type="email"],
+    .pick-form select {
+      width: 100%;
+      max-width: 420px;
+    }
+
     button.action-button {
       padding: 10px 14px;
       background: #134611;
@@ -578,6 +585,7 @@
         <li>Go to <strong>Sign Up</strong> and enter your information.</li>
         <li>Then go to <strong>Make a Pick</strong>.</li>
         <li>Enter your name exactly the same way each time.</li>
+        <li>Enter the same email you used when you signed up.</li>
         <li>Select the day you want to make a pick for.</li>
         <li>Select an available team.</li>
         <li>Click <strong>Submit Pick</strong>.</li>
@@ -626,27 +634,34 @@
   <div id="pick" class="content">
     <h2>Submit Your Pick</h2>
 
-    <input type="text" id="playerName" placeholder="Your Name" oninput="refreshAvailableTeams()" />
-    <br /><br />
+    <div class="pick-form">
+      <label for="playerName"><strong>Name:</strong></label><br />
+      <input type="text" id="playerName" placeholder="Your Name" oninput="refreshAvailableTeams()" />
+      <br /><br />
 
-    <label for="daySelect"><strong>Select Day:</strong></label><br />
-    <select id="daySelect" onchange="refreshAvailableTeams()"></select>
-    <br /><br />
+      <label for="playerEmail"><strong>Email:</strong></label><br />
+      <input type="email" id="playerEmail" placeholder="Your Email" />
+      <br /><br />
 
-    <label for="teamSelect"><strong>Select Team:</strong></label><br />
-    <div class="team-select-row">
-      <select id="teamSelect" onchange="updateSelectedTeamLogo()"></select>
-      <div id="selectedTeamLogoWrap" class="selected-team-logo-wrap">
-        <img id="selectedTeamLogo" class="selected-team-logo" src="" alt="" style="display:none;" />
+      <label for="daySelect"><strong>Select Day:</strong></label><br />
+      <select id="daySelect" onchange="refreshAvailableTeams()"></select>
+      <br /><br />
+
+      <label for="teamSelect"><strong>Select Team:</strong></label><br />
+      <div class="team-select-row">
+        <select id="teamSelect" onchange="updateSelectedTeamLogo()"></select>
+        <div id="selectedTeamLogoWrap" class="selected-team-logo-wrap">
+          <img id="selectedTeamLogo" class="selected-team-logo" src="" alt="" style="display:none;" />
+        </div>
       </div>
+
+      <div id="teamPreviewList" class="team-preview-list"></div>
+      <br />
+
+      <button class="action-button" onclick="submitPick()">Submit Pick</button>
+
+      <p id="message"></p>
     </div>
-
-    <div id="teamPreviewList" class="team-preview-list"></div>
-    <br />
-
-    <button class="action-button" onclick="submitPick()">Submit Pick</button>
-
-    <p id="message"></p>
 
     <div class="admin" id="adminPanel" style="display:none;">
       <h3>Admin Controls</h3>
@@ -1060,7 +1075,7 @@
 
     window.submitSignup = async function() {
       const name = document.getElementById("signupName").value.trim();
-      const email = document.getElementById("signupEmail").value.trim();
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
       const phone = document.getElementById("signupPhone").value.trim();
       const signupMessage = document.getElementById("signupMessage");
 
@@ -1110,12 +1125,20 @@
 
     window.submitPick = async function() {
       const name = document.getElementById("playerName").value.trim();
+      const email = document.getElementById("playerEmail").value.trim().toLowerCase();
       const selectedDay = document.getElementById("daySelect").value;
       const team = document.getElementById("teamSelect").value;
       const message = document.getElementById("message");
 
+      message.innerText = "";
+
       if (!name) {
         message.innerText = "Enter your name.";
+        return;
+      }
+
+      if (!email) {
+        message.innerText = "Enter your email.";
         return;
       }
 
@@ -1126,6 +1149,22 @@
 
       if (!team) {
         message.innerText = "Select a team.";
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      if (!playerSnap.exists()) {
+        message.innerText = "Player not found. Please sign up first.";
+        return;
+      }
+
+      const playerData = playerSnap.data();
+      const storedEmail = (playerData.email || "").trim().toLowerCase();
+
+      if (!storedEmail || storedEmail !== email) {
+        message.innerText = "Name and email do not match our records.";
         return;
       }
 
@@ -1167,23 +1206,12 @@
         }
       }
 
-      const playerRef = doc(db, "players", name);
-      const playerSnap = await getDoc(playerRef);
+      let picks = playerData.picks || {};
+      const status = playerData.status || "alive";
 
-      let picks = {};
-      let status = "alive";
-      let existingPlayerData = {};
-
-      if (playerSnap.exists()) {
-        const data = playerSnap.data();
-        existingPlayerData = data;
-        picks = data.picks || {};
-        status = data.status || "alive";
-
-        if (status === "eliminated") {
-          message.innerText = "You have been eliminated.";
-          return;
-        }
+      if (status === "eliminated") {
+        message.innerText = "You have been eliminated.";
+        return;
       }
 
       const usedTeamsOnOtherDays = Object.entries(picks)
@@ -1201,8 +1229,8 @@
         playerRef,
         {
           name: name,
-          email: existingPlayerData.email || "",
-          phone: existingPlayerData.phone || "",
+          email: storedEmail,
+          phone: playerData.phone || "",
           status: status,
           picks: picks
         },
