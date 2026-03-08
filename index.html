@@ -1,563 +1,648 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>March Madness Survivor Pool</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
   <style>
     body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  margin: 0;
-  background: linear-gradient(to bottom, #0b3d0b, #1f7a1f);
-  color: white;
-}
-
-.tabs {
-  display: flex;
-  background: #0b3d0b;
-}
-
-.tab {
-  padding: 15px;
-  flex: 1;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.tab:hover {
-  background: #1f7a1f;
-}
-
-.tab.active {
-  background: #2e8b2e;
-  font-weight: bold;
-}
-
-.content {
-  background: white;
-  color: black;
-  margin: 20px;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-thead tr:first-child {
-  background: #ffeb3b;
-  font-weight: bold;
-  text-align: center;
-}
-
-thead tr:nth-child(2) {
-  background: #ddd;
-}
-
-th, td {
-  padding: 6px;
-  border: 1px solid #ccc;
-  text-align: center;
-}
-
-td:first-child {
-  text-align: left;
-  font-weight: bold;
-}
-
-.eliminatedCell {
-  background: black;
-  color: white;
-}
-
-.admin {
-  margin-top: 40px;
-  padding: 15px;
-  border: 2px dashed #aaa;
-}
-.table-wrapper {
-  overflow-x: auto;
-  width: 100%;
-}
-
-table {
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  background: white;
-}
-
-th, td {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  text-align: center;
-  min-width: 120px;
-}
-
-td:first-child, th:first-child {
-  position: sticky;
-  left: 0;
-  background: white;
-  z-index: 2;
-  text-align: left;
-  font-weight: bold;
-  min-width: 180px;
-}
-
-thead tr:first-child th {
-  background: #ffeb3b;
-  font-weight: bold;
-}
-
-thead tr:nth-child(2) th {
-  background: #ddd;
-}
-
-thead th:first-child {
-  z-index: 3;
-}
-
-.winCell {
-  background: #c8e6c9;
-  color: #1b5e20;
-  font-weight: bold;
-}
-
-.lossCell {
-  background: #ffcdd2;
-  color: #b71c1c;
-  font-weight: bold;
-}
-
-.eliminatedCell {
-  background: black;
-  color: white;
-}
-
-.pick-cell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: flex-start;
-}
-
-.pick-logo {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  th, td {
-    min-width: 100px;
-    font-size: 12px;
-    padding: 5px 8px;
-  }
-
-  td:first-child, th:first-child {
-    min-width: 140px;
-  }
-
-  .pick-logo {
-    width: 16px;
-    height: 16px;
-  }
-}
-  
-    </style>
-<body>
-
-<div style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:18px;" onclick="unlockAdmin()">⚙</div>
-  
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('standings', this)">Standings</div>
-<div class="tab" onclick="switchTab('pick', this)">Make a Pick</div>
-</div>
-
-<div id="standings" class="content active">
-  <h2>Standings</h2>
-  <h3 id="remainingCount">Remaining Players: 0</h3>
-  <div class="table-wrapper">
-  <table id="standingsTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="pick" class="content">
-  <h2>Submit Your Pick</h2>
-
-  <input type="text" id="playerName" placeholder="Your Name">
-  <br><br>
-
-  <select id="teamSelect"></select>
-  <br>
-
-  <button onclick="submitPick()">Submit Pick</button>
-
-  <p id="message"></p>
-
-  <!-- ADMIN PANEL STARTS HERE -->
-  <div class="admin" id="adminPanel" style="display:none;">
-    <h3>Admin Controls</h3>
-
-    <label>
-      <input type="checkbox" id="lockToggle" onchange="toggleLock()">
-      Lock Picks
-    </label>
-
-    <br><br>
-
-    <label>Set Lock Time:</label>
-    <input type="datetime-local" id="lockTimeInput">
-    <button onclick="setLockTime()">Update Lock Time</button>
-
-    <br><br>
-
-<label>Set Current Day:</label>
-<input type="text" id="currentDayInput" placeholder="Day1">
-<button onclick="setCurrentDay()">Update Day</button>
-
-<br><br>
-
-<button onclick="eliminateTeam()">Eliminate Team</button>
-    <br><br>
-  </div>
-  <!-- ADMIN PANEL ENDS HERE -->
-
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
-  authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
-  projectId: "ncaa-tournament-survivor-pool",
-  storageBucket: "ncaa-tournament-survivor-pool.firebasestorage.app",
-  messagingSenderId: "870538967309",
-  appId: "1:870538967309:web:89d2c0f88ea239eec19844"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* --------------------------
-   TAB SWITCHING
--------------------------- */
-window.switchTab = function(tab, el) {
-  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.getElementById(tab).classList.add("active");
-  el.classList.add("active");
-}
-
-/* --------------------------
-   LOAD TEAMS
--------------------------- */
-async function loadTeams() {
-  const snapshot = await getDocs(collection(db, "teams"));
-  const select = document.getElementById("teamSelect");
-  select.innerHTML = "";
-
-  snapshot.forEach(docSnap => {
-    const team = docSnap.data();
-    if (!team.eliminated) {
-      select.innerHTML += `<option value="${team.name}">${team.name}</option>`;
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(to bottom, #0b3d0b, #1f7a1f);
+      color: white;
     }
-  });
-}
 
-/* --------------------------
-   LOAD STANDINGS
--------------------------- */
-function renderPickCell(teamName, teamsMap) {
-  const logo = teamsMap[teamName]?.logo;
+    .admin-gear {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 18px;
+      z-index: 1000;
+    }
 
-  if (logo) {
-    return `
-      <div class="pick-cell">
-        <img src="${logo}" alt="${teamName}" class="pick-logo">
-        <span>${teamName}</span>
-      </div>
-    `;
-  }
+    .tabs {
+      display: flex;
+      background: #0b3d0b;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+    }
 
-  return `
-    <div class="pick-cell">
-      <span>${teamName}</span>
-    </div>
-  `;
-}
-  
-  async function loadStandings() {
-  const playersRef = collection(db, "players");
+    .tab {
+      padding: 15px;
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      font-weight: 600;
+    }
 
-  onSnapshot(playersRef, async (playerSnapshot) => {
-    const [daysSnap, teamsSnap] = await Promise.all([
-      getDocs(collection(db, "days")),
-      getDocs(collection(db, "teams"))
-    ]);
+    .tab:hover {
+      background: #1f7a1f;
+    }
 
-    let days = [];
-    let teamsMap = {};
-    let aliveCount = 0;
+    .tab.active {
+      background: #2e8b2e;
+      font-weight: 700;
+    }
 
-    daysSnap.forEach(docSnap => {
-      days.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
-    });
+    .content {
+      display: none;
+      background: white;
+      color: black;
+      margin: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
 
-    days.sort((a, b) => a.order - b.order);
+    .content.active {
+      display: block;
+    }
 
-    teamsSnap.forEach(docSnap => {
-      teamsMap[docSnap.id] = docSnap.data();
-    });
+    h2, h3 {
+      margin-top: 0;
+    }
 
-    const tbody = document.querySelector("#standingsTable tbody");
-    const thead = document.querySelector("#standingsTable thead");
+    input, select, button {
+      font: inherit;
+    }
 
-    thead.innerHTML = `
-      <tr>
-        <th></th>
-        ${days.map(day => `<th>${day.cutoff || ""}</th>`).join("")}
-      </tr>
-      <tr>
-        <th>Name</th>
-        ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
-      </tr>
-    `;
+    input[type="text"],
+    input[type="datetime-local"],
+    select {
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      width: 260px;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
 
-    tbody.innerHTML = "";
+    button {
+      padding: 10px 14px;
+      background: #134611;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      margin-right: 8px;
+    }
 
-    playerSnapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const picks = data.picks || {};
+    button:hover {
+      background: #0f3810;
+    }
 
-      if (data.status === "alive") aliveCount++;
+    .admin {
+      margin-top: 40px;
+      padding: 15px;
+      border: 2px dashed #aaa;
+      border-radius: 8px;
+      background: #f8f8f8;
+    }
 
-      let eliminatedReached = false;
-      let row = `<tr>`;
-      row += `<td>${data.name || ""}</td>`;
+    .table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
 
-      for (const day of days) {
-        const pick = picks[day.id] || "";
-        const winningTeams = day.winningTeams || [];
-        const losingTeams = day.losingTeams || [];
+    table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: white;
+    }
 
-        let cellClass = "";
-        let cellContent = "";
+    th,
+    td {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+      min-width: 120px;
+      vertical-align: middle;
+    }
 
-        if (eliminatedReached) {
-          cellClass = "eliminatedCell";
-          cellContent = "Eliminated";
-        } else if (!pick) {
-          cellContent = "";
-        } else if (losingTeams.includes(pick)) {
-          cellClass = "lossCell";
-          cellContent = renderPickCell(pick, teamsMap);
-          eliminatedReached = true;
-        } else if (winningTeams.includes(pick)) {
-          cellClass = "winCell";
-          cellContent = renderPickCell(pick, teamsMap);
-        } else {
-          cellContent = renderPickCell(pick, teamsMap);
-        }
+    td:first-child,
+    th:first-child {
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 2;
+      text-align: left;
+      font-weight: bold;
+      min-width: 180px;
+    }
 
-        row += `<td class="${cellClass}">${cellContent}</td>`;
+    thead tr:first-child th {
+      background: #ffeb3b;
+      font-weight: bold;
+    }
+
+    thead tr:nth-child(2) th {
+      background: #ddd;
+    }
+
+    thead th:first-child {
+      z-index: 3;
+    }
+
+    .winCell {
+      background: #c8e6c9;
+      color: #1b5e20;
+      font-weight: bold;
+    }
+
+    .lossCell {
+      background: #ffcdd2;
+      color: #b71c1c;
+      font-weight: bold;
+    }
+
+    .eliminatedCell {
+      background: black !important;
+      color: white !important;
+    }
+
+    .pick-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-start;
+    }
+
+    .pick-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    #message {
+      margin-top: 12px;
+      font-weight: 600;
+      color: #134611;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        margin: 10px;
+        padding: 14px;
       }
 
-      row += `</tr>`;
-      tbody.innerHTML += row;
-    });
+      th,
+      td {
+        min-width: 100px;
+        font-size: 12px;
+        padding: 5px 8px;
+      }
 
-    document.getElementById("remainingCount").innerText =
-      "Remaining Players: " + aliveCount;
-  });
-}
-/* --------------------------
-   SUBMIT PICK
--------------------------- */
-window.submitPick = async function() {
+      td:first-child,
+      th:first-child {
+        min-width: 140px;
+      }
 
-  const name = document.getElementById("playerName").value.trim();
-  const team = document.getElementById("teamSelect").value;
-  const message = document.getElementById("message");
+      .pick-logo {
+        width: 16px;
+        height: 16px;
+      }
 
-  if (!name) {
-    message.innerText = "Enter your name.";
-    return;
-  }
-
-  const settingsSnap = await getDoc(doc(db, "settings", "global"));
-  const settings = settingsSnap.data();
-  const currentDay = settings.currentDay;
-
-  if (!currentDay) {
-    message.innerText = "Admin has not set the current day.";
-    return;
-  }
-
-  if (settings?.picksLocked) {
-    message.innerText = "Picks are locked.";
-    return;
-  }
-
-  if (settings?.lockTime) {
-    const now = new Date();
-    const lockTime = settings.lockTime.toDate();
-    if (now >= lockTime) {
-      message.innerText = "Picks are locked for today.";
-      return;
+      input[type="text"],
+      input[type="datetime-local"],
+      select {
+        width: 100%;
+      }
     }
-  }
+  </style>
+</head>
+<body>
+  <div class="admin-gear" onclick="unlockAdmin()">⚙</div>
 
-  const playerRef = doc(db, "players", name);
-  const playerSnap = await getDoc(playerRef);
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('standings', this)">Standings</div>
+    <div class="tab" onclick="switchTab('pick', this)">Make a Pick</div>
+  </div>
 
-  let pickHistory = [];
-  let picks = {};
-  let status = "alive";
+  <div id="standings" class="content active">
+    <h2>Standings</h2>
+    <h3 id="remainingCount">Remaining Players: 0</h3>
 
-  if (playerSnap.exists()) {
-    const data = playerSnap.data();
+    <div class="table-wrapper">
+      <table id="standingsTable">
+        <thead>
+          <tr>
+            <th></th>
+          </tr>
+          <tr>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 
-    if (data.status === "eliminated") {
-      message.innerText = "You have been eliminated.";
-      return;
+  <div id="pick" class="content">
+    <h2>Submit Your Pick</h2>
+
+    <input type="text" id="playerName" placeholder="Your Name" />
+    <br /><br />
+
+    <select id="teamSelect"></select>
+    <br />
+
+    <button onclick="submitPick()">Submit Pick</button>
+
+    <p id="message"></p>
+
+    <div class="admin" id="adminPanel" style="display:none;">
+      <h3>Admin Controls</h3>
+
+      <label>
+        <input type="checkbox" id="lockToggle" onchange="toggleLock()" />
+        Lock Picks
+      </label>
+
+      <br /><br />
+
+      <label>Set Lock Time:</label><br />
+      <input type="datetime-local" id="lockTimeInput" />
+      <button onclick="setLockTime()">Update Lock Time</button>
+
+      <br /><br />
+
+      <label>Set Current Day:</label><br />
+      <input type="text" id="currentDayInput" placeholder="Day1" />
+      <button onclick="setCurrentDay()">Update Day</button>
+
+      <br /><br />
+
+      <button onclick="eliminateTeam()">Eliminate Team</button>
+
+      <br /><br />
+
+      <label>Next Day:</label><br />
+      <input type="text" id="nextDayInput" placeholder="Day2" />
+      <button onclick="advanceDay()">Advance</button>
+
+      <p class="muted">
+        Team document IDs should match the team names exactly.
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
+      authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
+      projectId: "ncaa-tournament-survivor-pool",
+      storageBucket: "ncaa-tournament-survivor-pool.firebasestorage.app",
+      messagingSenderId: "870538967309",
+      appId: "1:870538967309:web:89d2c0f88ea239eec19844"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.switchTab = function(tab, el) {
+      document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.getElementById(tab).classList.add("active");
+      el.classList.add("active");
+    };
+
+    window.unlockAdmin = function() {
+      const key = prompt("Enter admin key:");
+      if (key === "MM2026") {
+        document.getElementById("adminPanel").style.display = "block";
+        alert("Admin unlocked.");
+      } else {
+        alert("Incorrect key.");
+      }
+    };
+
+    function renderPickCell(teamName, teamsMap) {
+      const logo = teamsMap[teamName]?.logo;
+
+      if (logo) {
+        return `
+          <div class="pick-cell">
+            <img src="${logo}" alt="${teamName}" class="pick-logo">
+            <span>${teamName}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="pick-cell">
+          <span>${teamName}</span>
+        </div>
+      `;
     }
 
-    pickHistory = data.pickHistory || [];
-    picks = data.picks || {};
-    status = data.status;
+    async function loadTeams() {
+      const snapshot = await getDocs(collection(db, "teams"));
+      const select = document.getElementById("teamSelect");
+      select.innerHTML = `<option value="">-- Select a Team --</option>`;
 
-    if (pickHistory.includes(team)) {
-      message.innerText = "You have already used that team.";
-      return;
-    }
+      snapshot.forEach(docSnap => {
+        const team = docSnap.data();
+        const teamName = docSnap.id;
 
-    if (picks[currentDay]) {
-      message.innerText = "You already submitted for today.";
-      return;
-    }
-  }
-
-  pickHistory.push(team);
-  picks[currentDay] = team;
-
-  await setDoc(playerRef, {
-    name: name,
-    status: status,
-    pickHistory: pickHistory,
-    picks: picks
-  }, { merge: true });
-
-  message.innerText = "Pick Submitted - Good Luck!";
-  loadStandings();
-};
-
-/* --------------------------
-   ADMIN FUNCTIONS
--------------------------- */
- 
-  window.toggleLock = async function() {
-  const lock = document.getElementById("lockToggle").checked;
-  await updateDoc(doc(db, "settings", "global"), {
-    picksLocked: lock
-  });
-  alert("Lock updated.");
-};
-
-window.setLockTime = async function() {
-  const input = document.getElementById("lockTimeInput").value;
-  const date = new Date(input);
-
-  await updateDoc(doc(db, "settings", "global"), {
-    lockTime: date
-  });
-
-  alert("Lock time updated.");
-};
-window.setCurrentDay = async function() {
-
-  const day = document.getElementById("currentDayInput").value.trim();
-
-  if (!day) {
-    alert("Enter a day name.");
-    return;
-  }
-
-  await updateDoc(doc(db, "settings", "global"), {
-    currentDay: day
-  });
-
-  alert("Current day updated to " + day);
-};
-  
-  window.eliminateTeam = async function() {
-
-  const team = prompt("Enter team to eliminate:");
-  if (!team) return;
-
-  const settingsSnap = await getDoc(doc(db, "settings", "global"));
-  const settings = settingsSnap.data();
-  const currentDay = settings.currentDay;
-
-  if (!currentDay) {
-    alert("Current day not set.");
-    return;
-  }
-
-  // 1️⃣ Mark team eliminated
-  await updateDoc(doc(db, "teams", team), {
-    eliminated: true
-  });
-
-  // 2️⃣ Eliminate players who picked them today
-  const playersSnap = await getDocs(collection(db, "players"));
-
-  for (const docSnap of playersSnap.docs) {
-    const data = docSnap.data();
-    const picks = data.picks || {};
-
-    if (picks[currentDay] === team && data.status === "alive") {
-      await updateDoc(doc(db, "players", data.name), {
-        status: "eliminated"
+        if (!team.eliminated) {
+          select.innerHTML += `<option value="${teamName}">${teamName}</option>`;
+        }
       });
     }
-  }
 
-  alert(team + " eliminated. Standings updated.");
+    function loadStandings() {
+      const playersRef = collection(db, "players");
 
-  loadStandings();
-  loadTeams(); // refresh dropdown
-};
-/* --------------------------
-   INITIAL LOAD
--------------------------- */
-loadStandings();
-loadTeams();
+      onSnapshot(playersRef, async (playerSnapshot) => {
+        const [daysSnap, teamsSnap] = await Promise.all([
+          getDocs(collection(db, "days")),
+          getDocs(collection(db, "teams"))
+        ]);
 
-</script>
+        let days = [];
+        let teamsMap = {};
+        let aliveCount = 0;
 
+        daysSnap.forEach(docSnap => {
+          days.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        days.sort((a, b) => a.order - b.order);
+
+        teamsSnap.forEach(docSnap => {
+          teamsMap[docSnap.id] = docSnap.data();
+        });
+
+        const tbody = document.querySelector("#standingsTable tbody");
+        const thead = document.querySelector("#standingsTable thead");
+
+        thead.innerHTML = `
+          <tr>
+            <th></th>
+            ${days.map(day => `<th>${day.cutoff || ""}</th>`).join("")}
+          </tr>
+          <tr>
+            <th>Name</th>
+            ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
+          </tr>
+        `;
+
+        tbody.innerHTML = "";
+
+        playerSnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const picks = data.picks || {};
+
+          if (data.status === "alive") aliveCount++;
+
+          let eliminatedReached = false;
+          let row = `<tr>`;
+          row += `<td>${data.name || docSnap.id}</td>`;
+
+          for (const day of days) {
+            const pick = picks[day.id] || "";
+            const winningTeams = day.winningTeams || [];
+            const losingTeams = day.losingTeams || [];
+
+            let cellClass = "";
+            let cellContent = "";
+
+            if (eliminatedReached) {
+              cellClass = "eliminatedCell";
+              cellContent = "Eliminated";
+            } else if (!pick) {
+              cellContent = "";
+            } else if (losingTeams.includes(pick)) {
+              cellClass = "lossCell";
+              cellContent = renderPickCell(pick, teamsMap);
+              eliminatedReached = true;
+            } else if (winningTeams.includes(pick)) {
+              cellClass = "winCell";
+              cellContent = renderPickCell(pick, teamsMap);
+            } else {
+              cellContent = renderPickCell(pick, teamsMap);
+            }
+
+            row += `<td class="${cellClass}">${cellContent}</td>`;
+          }
+
+          row += `</tr>`;
+          tbody.innerHTML += row;
+        });
+
+        document.getElementById("remainingCount").innerText =
+          "Remaining Players: " + aliveCount;
+      });
+    }
+
+    window.submitPick = async function() {
+      const name = document.getElementById("playerName").value.trim();
+      const team = document.getElementById("teamSelect").value;
+      const message = document.getElementById("message");
+
+      if (!name) {
+        message.innerText = "Enter your name.";
+        return;
+      }
+
+      if (!team) {
+        message.innerText = "Select a team.";
+        return;
+      }
+
+      const settingsSnap = await getDoc(doc(db, "settings", "global"));
+      const settings = settingsSnap.data();
+      const currentDay = settings?.currentDay;
+
+      if (!currentDay) {
+        message.innerText = "Admin has not set the current day.";
+        return;
+      }
+
+      if (settings?.picksLocked) {
+        message.innerText = "Picks are locked.";
+        return;
+      }
+
+      if (settings?.lockTime) {
+        const now = new Date();
+        const lockTime = settings.lockTime.toDate();
+        if (now >= lockTime) {
+          message.innerText = "Picks are locked for today.";
+          return;
+        }
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      let pickHistory = [];
+      let picks = {};
+      let status = "alive";
+
+      if (playerSnap.exists()) {
+        const data = playerSnap.data();
+
+        if (data.status === "eliminated") {
+          message.innerText = "You have been eliminated.";
+          return;
+        }
+
+        pickHistory = data.pickHistory || [];
+        picks = data.picks || {};
+        status = data.status || "alive";
+
+        if (pickHistory.includes(team)) {
+          message.innerText = "You have already used that team.";
+          return;
+        }
+
+        if (picks[currentDay]) {
+          message.innerText = "You already submitted for today.";
+          return;
+        }
+      }
+
+      pickHistory.push(team);
+      picks[currentDay] = team;
+
+      await setDoc(
+        playerRef,
+        {
+          name: name,
+          status: status,
+          pickHistory: pickHistory,
+          picks: picks
+        },
+        { merge: true }
+      );
+
+      message.innerText = "Pick Submitted - Good Luck!";
+    };
+
+    window.toggleLock = async function() {
+      const lock = document.getElementById("lockToggle").checked;
+      await updateDoc(doc(db, "settings", "global"), {
+        picksLocked: lock
+      });
+      alert("Lock updated.");
+    };
+
+    window.setLockTime = async function() {
+      const input = document.getElementById("lockTimeInput").value;
+      if (!input) {
+        alert("Enter a lock time.");
+        return;
+      }
+
+      const date = new Date(input);
+
+      await updateDoc(doc(db, "settings", "global"), {
+        lockTime: date
+      });
+
+      alert("Lock time updated.");
+    };
+
+    window.setCurrentDay = async function() {
+      const day = document.getElementById("currentDayInput").value.trim();
+
+      if (!day) {
+        alert("Enter a day name.");
+        return;
+      }
+
+      await updateDoc(doc(db, "settings", "global"), {
+        currentDay: day
+      });
+
+      alert("Current day updated to " + day);
+    };
+
+    window.eliminateTeam = async function() {
+      const team = prompt("Enter team to eliminate:");
+      if (!team) return;
+
+      const settingsSnap = await getDoc(doc(db, "settings", "global"));
+      const settings = settingsSnap.data();
+      const currentDay = settings?.currentDay;
+
+      if (!currentDay) {
+        alert("Current day not set.");
+        return;
+      }
+
+      await updateDoc(doc(db, "teams", team), {
+        eliminated: true
+      });
+
+      const playersSnap = await getDocs(collection(db, "players"));
+
+      for (const docSnap of playersSnap.docs) {
+        const data = docSnap.data();
+        const picks = data.picks || {};
+
+        if (picks[currentDay] === team && data.status === "alive") {
+          await updateDoc(doc(db, "players", data.name), {
+            status: "eliminated"
+          });
+        }
+      }
+
+      alert(team + " eliminated. Standings updated.");
+      loadTeams();
+    };
+
+    window.advanceDay = async function() {
+      const nextDay = document.getElementById("nextDayInput").value.trim();
+
+      if (!nextDay) {
+        alert("Enter next day name.");
+        return;
+      }
+
+      await updateDoc(doc(db, "settings", "global"), {
+        currentDay: nextDay,
+        picksLocked: false,
+        lockTime: null
+      });
+
+      alert("Advanced to " + nextDay);
+    };
+
+    loadStandings();
+    loadTeams();
+  </script>
 </body>
 </html>
