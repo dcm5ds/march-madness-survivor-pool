@@ -23,33 +23,34 @@
     }
 
     .tabs {
-  display: flex;
-  background: #0b3d0b;
-  position: sticky;
-  top: 0;
-  z-index: 500;
-}
+      display: flex;
+      background: #0b3d0b;
+      position: sticky;
+      top: 0;
+      z-index: 500;
+    }
 
-.tab {
-  flex: 1;
-  padding: 15px;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.2s;
-  color: white;
-  font-weight: 600;
-  background: transparent;
-  border: none;
-}
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+    }
 
-.tab:hover {
-  background: #1f7a1f;
-}
+    .tab:hover {
+      background: #1f7a1f;
+    }
 
-.tab.active {
-  background: #2e8b2e;
-  font-weight: 700;
-}
+    .tab.active {
+      background: #2e8b2e;
+      font-weight: 700;
+    }
+
     .content {
       display: none;
       background: white;
@@ -84,7 +85,7 @@
       box-sizing: border-box;
     }
 
-    button {
+    button.action-button {
       padding: 10px 14px;
       background: #134611;
       color: white;
@@ -95,7 +96,7 @@
       margin-right: 8px;
     }
 
-    button:hover {
+    button.action-button:hover {
       background: #0f3810;
     }
 
@@ -231,13 +232,13 @@
   <div class="admin-gear" onclick="unlockAdmin()">⚙</div>
 
   <div class="tabs">
-  <button class="tab active" id="tab-standings" type="button" onclick="switchTab('standings')">
-    Standings
-  </button>
-  <button class="tab" id="tab-pick" type="button" onclick="switchTab('pick')">
-    Make a Pick
-  </button>
-</div>
+    <button class="tab active" id="tab-standings" type="button" onclick="switchTab('standings')">
+      Standings
+    </button>
+    <button class="tab" id="tab-pick" type="button" onclick="switchTab('pick')">
+      Make a Pick
+    </button>
+  </div>
 
   <div id="standings" class="content active">
     <h2>Standings</h2>
@@ -261,18 +262,18 @@
   <div id="pick" class="content">
     <h2>Submit Your Pick</h2>
 
-    <input type="text" id="playerName" placeholder="Your Name" />
+    <input type="text" id="playerName" placeholder="Your Name" oninput="refreshAvailableTeams()" />
     <br /><br />
 
     <label for="daySelect"><strong>Select Day:</strong></label><br />
-    <select id="daySelect"></select>
+    <select id="daySelect" onchange="refreshAvailableTeams()"></select>
     <br /><br />
 
     <label for="teamSelect"><strong>Select Team:</strong></label><br />
     <select id="teamSelect"></select>
     <br />
 
-    <button onclick="submitPick()">Submit Pick</button>
+    <button class="action-button" onclick="submitPick()">Submit Pick</button>
 
     <p id="message"></p>
 
@@ -288,23 +289,23 @@
 
       <label>Set Global Lock Time:</label><br />
       <input type="datetime-local" id="lockTimeInput" />
-      <button onclick="setLockTime()">Update Global Lock Time</button>
+      <button class="action-button" onclick="setLockTime()">Update Global Lock Time</button>
 
       <br /><br />
 
       <label>Set Current Day:</label><br />
       <input type="text" id="currentDayInput" placeholder="Day1" />
-      <button onclick="setCurrentDay()">Update Day</button>
+      <button class="action-button" onclick="setCurrentDay()">Update Day</button>
 
       <br /><br />
 
-      <button onclick="eliminateTeam()">Eliminate Team</button>
+      <button class="action-button" onclick="eliminateTeam()">Eliminate Team</button>
 
       <br /><br />
 
       <label>Next Day:</label><br />
       <input type="text" id="nextDayInput" placeholder="Day2" />
-      <button onclick="advanceDay()">Advance</button>
+      <button class="action-button" onclick="advanceDay()">Advance</button>
 
       <p class="muted">
         Team document IDs should match the team names exactly.
@@ -337,13 +338,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-   window.switchTab = function(tab) {
-  document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    window.switchTab = function(tab) {
+      document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
 
-  document.getElementById(tab).classList.add("active");
-  document.getElementById("tab-" + tab).classList.add("active");
-};
+      document.getElementById(tab).classList.add("active");
+      document.getElementById("tab-" + tab).classList.add("active");
+    };
 
     window.unlockAdmin = function() {
       const key = prompt("Enter admin key:");
@@ -374,47 +375,88 @@
       `;
     }
 
-    async function loadTeams() {
+    async function getAllAvailableTeams() {
       const snapshot = await getDocs(collection(db, "teams"));
-      const select = document.getElementById("teamSelect");
-      select.innerHTML = `<option value="">-- Select a Team --</option>`;
+      let teams = [];
 
       snapshot.forEach(docSnap => {
-        const team = docSnap.data();
+        const teamData = docSnap.data();
         const teamName = docSnap.id;
 
-        if (!team.eliminated) {
-          select.innerHTML += `<option value="${teamName}">${teamName}</option>`;
+        if (!teamData.eliminated) {
+          teams.push(teamName);
         }
       });
+
+      teams.sort();
+      return teams;
     }
 
-    async function loadDays() {
-  try {
-    const snapshot = await getDocs(collection(db, "days"));
-    const select = document.getElementById("daySelect");
-    select.innerHTML = `<option value="">-- Select a Day --</option>`;
+    window.refreshAvailableTeams = async function() {
+      const select = document.getElementById("teamSelect");
+      const name = document.getElementById("playerName").value.trim();
+      const selectedDay = document.getElementById("daySelect").value;
 
-    let days = [];
+      select.innerHTML = `<option value="">-- Select a Team --</option>`;
 
-    snapshot.forEach(docSnap => {
-      days.push({
-        id: docSnap.id,
-        ...docSnap.data()
+      const allTeams = await getAllAvailableTeams();
+
+      if (!name || !selectedDay) {
+        allTeams.forEach(team => {
+          select.innerHTML += `<option value="${team}">${team}</option>`;
+        });
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      let picks = {};
+      let currentDayPick = "";
+
+      if (playerSnap.exists()) {
+        const data = playerSnap.data();
+        picks = data.picks || {};
+        currentDayPick = picks[selectedDay] || "";
+      }
+
+      const usedTeamsOnOtherDays = Object.entries(picks)
+        .filter(([dayKey]) => dayKey !== selectedDay)
+        .map(([, pickedTeam]) => pickedTeam);
+
+      const filteredTeams = allTeams.filter(team => {
+        return !usedTeamsOnOtherDays.includes(team);
       });
-    });
 
-    console.log("Days loaded:", days);
+      filteredTeams.forEach(team => {
+        const isSelected = team === currentDayPick ? "selected" : "";
+        select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
+      });
+    };
 
-    days.sort((a, b) => a.order - b.order);
+    async function loadDays() {
+      const snapshot = await getDocs(collection(db, "days"));
+      const select = document.getElementById("daySelect");
+      select.innerHTML = `<option value="">-- Select a Day --</option>`;
 
-    days.forEach(day => {
-      select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
-    });
-  } catch (error) {
-    console.error("Error loading days:", error);
-  }
-}
+      let days = [];
+
+      snapshot.forEach(docSnap => {
+        days.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
+
+      days.sort((a, b) => a.order - b.order);
+
+      days.forEach(day => {
+        select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
+      });
+
+      refreshAvailableTeams();
+    }
+
     function loadStandings() {
       const playersRef = collection(db, "players");
 
@@ -600,6 +642,7 @@
       );
 
       message.innerText = "Pick Submitted - Good Luck!";
+      refreshAvailableTeams();
     };
 
     window.toggleLock = async function() {
@@ -672,7 +715,7 @@
       }
 
       alert(team + " eliminated. Standings updated.");
-      loadTeams();
+      refreshAvailableTeams();
     };
 
     window.advanceDay = async function() {
@@ -693,8 +736,8 @@
     };
 
     loadStandings();
-    loadTeams();
     loadDays();
+    refreshAvailableTeams();
   </script>
 </body>
 </html>
