@@ -256,13 +256,18 @@
   <div id="pick" class="content">
     <h2>Submit Your Pick</h2>
 
-    <input type="text" id="playerName" placeholder="Your Name" />
-    <br /><br />
+   <input type="text" id="playerName" placeholder="Your Name" />
+<br /><br />
 
-    <select id="teamSelect"></select>
-    <br />
+<label for="daySelect"><strong>Select Day:</strong></label><br />
+<select id="daySelect"></select>
+<br /><br />
 
-    <button onclick="submitPick()">Submit Pick</button>
+<label for="teamSelect"><strong>Select Team:</strong></label><br />
+<select id="teamSelect"></select>
+<br />
+
+<button onclick="submitPick()">Submit Pick</button>
 
     <p id="message"></p>
 
@@ -376,6 +381,27 @@
           select.innerHTML += `<option value="${teamName}">${teamName}</option>`;
         }
       });
+
+    async function loadDays() {
+  const snapshot = await getDocs(collection(db, "days"));
+  const select = document.getElementById("daySelect");
+  select.innerHTML = `<option value="">-- Select a Day --</option>`;
+
+  let days = [];
+
+  snapshot.forEach(docSnap => {
+    days.push({
+      id: docSnap.id,
+      ...docSnap.data()
+    });
+  });
+
+  days.sort((a, b) => a.order - b.order);
+
+  days.forEach(day => {
+    select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
+  });
+}
     }
 
     function loadStandings() {
@@ -466,87 +492,91 @@
       });
     }
 
-    window.submitPick = async function() {
-      const name = document.getElementById("playerName").value.trim();
-      const team = document.getElementById("teamSelect").value;
-      const message = document.getElementById("message");
+   window.submitPick = async function() {
+  const name = document.getElementById("playerName").value.trim();
+  const selectedDay = document.getElementById("daySelect").value;
+  const team = document.getElementById("teamSelect").value;
+  const message = document.getElementById("message");
 
-      if (!name) {
-        message.innerText = "Enter your name.";
-        return;
-      }
+  if (!name) {
+    message.innerText = "Enter your name.";
+    return;
+  }
 
-      if (!team) {
-        message.innerText = "Select a team.";
-        return;
-      }
+  if (!selectedDay) {
+    message.innerText = "Select a day.";
+    return;
+  }
 
-      const settingsSnap = await getDoc(doc(db, "settings", "global"));
-      const settings = settingsSnap.data();
-      const currentDay = settings?.currentDay;
+  if (!team) {
+    message.innerText = "Select a team.";
+    return;
+  }
 
-      if (!currentDay) {
-        message.innerText = "Admin has not set the current day.";
-        return;
-      }
+  // Get selected day document
+  const dayRef = doc(db, "days", selectedDay);
+  const daySnap = await getDoc(dayRef);
 
-      if (settings?.picksLocked) {
-        message.innerText = "Picks are locked.";
-        return;
-      }
+  if (!daySnap.exists()) {
+    message.innerText = "That day is not configured.";
+    return;
+  }
 
-      if (settings?.lockTime) {
-        const now = new Date();
-        const lockTime = settings.lockTime.toDate();
-        if (now >= lockTime) {
-          message.innerText = "Picks are locked for today.";
-          return;
-        }
-      }
+  const dayData = daySnap.data();
 
-      const playerRef = doc(db, "players", name);
-      const playerSnap = await getDoc(playerRef);
+  // Lock check for selected day
+  if (dayData?.lockTime) {
+    const now = new Date();
+    const lockTime = dayData.lockTime.toDate();
 
-      let pickHistory = [];
-      let picks = {};
-      let status = "alive";
+    if (now >= lockTime) {
+      message.innerText = "Picks are locked for that day.";
+      return;
+    }
+  }
 
-      if (playerSnap.exists()) {
-        const data = playerSnap.data();
+  const playerRef = doc(db, "players", name);
+  const playerSnap = await getDoc(playerRef);
 
-        if (data.status === "eliminated") {
-          message.innerText = "You have been eliminated.";
-          return;
-        }
+  let picks = {};
+  let status = "alive";
 
-        pickHistory = data.pickHistory || [];
-        picks = data.picks || {};
-        status = data.status || "alive";
+  if (playerSnap.exists()) {
+    const data = playerSnap.data();
+    picks = data.picks || {};
+    status = data.status || "alive";
 
-        if (pickHistory.includes(team)) {
-          message.innerText = "You have already used that team.";
-          return;
-        }
+    if (status === "eliminated") {
+      message.innerText = "You have been eliminated.";
+      return;
+    }
+  }
 
-        if (picks[currentDay]) {
-          message.innerText = "You already submitted for today.";
-          return;
-        }
-      }
+  // Disallow reusing a team on any OTHER day
+  const usedTeamsOnOtherDays = Object.entries(picks)
+    .filter(([dayKey]) => dayKey !== selectedDay)
+    .map(([, pickedTeam]) => pickedTeam);
 
-      pickHistory.push(team);
-      picks[currentDay] = team;
+  if (usedTeamsOnOtherDays.includes(team)) {
+    message.innerText = "You already used that team on a prior day.";
+    return;
+  }
 
-      await setDoc(
-        playerRef,
-        {
-          name: name,
-          status: status,
-          pickHistory: pickHistory,
-          picks: picks
-        },
-        { merge: true }
-      );
+  // Overwrite allowed for the SAME day before lock
+  picks[selectedDay] = team;
+
+  await setDoc(
+    playerRef,
+    {
+      name: name,
+      status: status,
+      picks: picks
+    },
+    { merge: true }
+  );
+
+  message.innerText = "Pick Submitted - Good Luck!";
+};
 
       message.innerText = "Pick Submitted - Good Luck!";
     };
@@ -641,8 +671,9 @@
       alert("Advanced to " + nextDay);
     };
 
-    loadStandings();
-    loadTeams();
+   loadStandings();
+loadTeams();
+loadDays();
   </script>
 </body>
 </html>
