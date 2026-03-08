@@ -390,26 +390,31 @@
     }
 
     async function loadDays() {
-      const snapshot = await getDocs(collection(db, "days"));
-      const select = document.getElementById("daySelect");
-      select.innerHTML = `<option value="">-- Select a Day --</option>`;
+  try {
+    const snapshot = await getDocs(collection(db, "days"));
+    const select = document.getElementById("daySelect");
+    select.innerHTML = `<option value="">-- Select a Day --</option>`;
 
-      let days = [];
+    let days = [];
 
-      snapshot.forEach(docSnap => {
-        days.push({
-          id: docSnap.id,
-          ...docSnap.data()
-        });
+    snapshot.forEach(docSnap => {
+      days.push({
+        id: docSnap.id,
+        ...docSnap.data()
       });
+    });
 
-      days.sort((a, b) => a.order - b.order);
+    console.log("Days loaded:", days);
 
-      days.forEach(day => {
-        select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
-      });
-    }
+    days.sort((a, b) => a.order - b.order);
 
+    days.forEach(day => {
+      select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
+    });
+  } catch (error) {
+    console.error("Error loading days:", error);
+  }
+}
     function loadStandings() {
       const playersRef = collection(db, "players");
 
