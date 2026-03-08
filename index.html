@@ -256,18 +256,18 @@
   <div id="pick" class="content">
     <h2>Submit Your Pick</h2>
 
-   <input type="text" id="playerName" placeholder="Your Name" />
-<br /><br />
+    <input type="text" id="playerName" placeholder="Your Name" />
+    <br /><br />
 
-<label for="daySelect"><strong>Select Day:</strong></label><br />
-<select id="daySelect"></select>
-<br /><br />
+    <label for="daySelect"><strong>Select Day:</strong></label><br />
+    <select id="daySelect"></select>
+    <br /><br />
 
-<label for="teamSelect"><strong>Select Team:</strong></label><br />
-<select id="teamSelect"></select>
-<br />
+    <label for="teamSelect"><strong>Select Team:</strong></label><br />
+    <select id="teamSelect"></select>
+    <br />
 
-<button onclick="submitPick()">Submit Pick</button>
+    <button onclick="submitPick()">Submit Pick</button>
 
     <p id="message"></p>
 
@@ -276,14 +276,14 @@
 
       <label>
         <input type="checkbox" id="lockToggle" onchange="toggleLock()" />
-        Lock Picks
+        Global Lock Picks
       </label>
 
       <br /><br />
 
-      <label>Set Lock Time:</label><br />
+      <label>Set Global Lock Time:</label><br />
       <input type="datetime-local" id="lockTimeInput" />
-      <button onclick="setLockTime()">Update Lock Time</button>
+      <button onclick="setLockTime()">Update Global Lock Time</button>
 
       <br /><br />
 
@@ -381,27 +381,27 @@
           select.innerHTML += `<option value="${teamName}">${teamName}</option>`;
         }
       });
+    }
 
     async function loadDays() {
-  const snapshot = await getDocs(collection(db, "days"));
-  const select = document.getElementById("daySelect");
-  select.innerHTML = `<option value="">-- Select a Day --</option>`;
+      const snapshot = await getDocs(collection(db, "days"));
+      const select = document.getElementById("daySelect");
+      select.innerHTML = `<option value="">-- Select a Day --</option>`;
 
-  let days = [];
+      let days = [];
 
-  snapshot.forEach(docSnap => {
-    days.push({
-      id: docSnap.id,
-      ...docSnap.data()
-    });
-  });
+      snapshot.forEach(docSnap => {
+        days.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
 
-  days.sort((a, b) => a.order - b.order);
+      days.sort((a, b) => a.order - b.order);
 
-  days.forEach(day => {
-    select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
-  });
-}
+      days.forEach(day => {
+        select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
+      });
     }
 
     function loadStandings() {
@@ -492,91 +492,101 @@
       });
     }
 
-   window.submitPick = async function() {
-  const name = document.getElementById("playerName").value.trim();
-  const selectedDay = document.getElementById("daySelect").value;
-  const team = document.getElementById("teamSelect").value;
-  const message = document.getElementById("message");
+    window.submitPick = async function() {
+      const name = document.getElementById("playerName").value.trim();
+      const selectedDay = document.getElementById("daySelect").value;
+      const team = document.getElementById("teamSelect").value;
+      const message = document.getElementById("message");
 
-  if (!name) {
-    message.innerText = "Enter your name.";
-    return;
-  }
+      if (!name) {
+        message.innerText = "Enter your name.";
+        return;
+      }
 
-  if (!selectedDay) {
-    message.innerText = "Select a day.";
-    return;
-  }
+      if (!selectedDay) {
+        message.innerText = "Select a day.";
+        return;
+      }
 
-  if (!team) {
-    message.innerText = "Select a team.";
-    return;
-  }
+      if (!team) {
+        message.innerText = "Select a team.";
+        return;
+      }
 
-  // Get selected day document
-  const dayRef = doc(db, "days", selectedDay);
-  const daySnap = await getDoc(dayRef);
+      const settingsSnap = await getDoc(doc(db, "settings", "global"));
+      const settings = settingsSnap.exists() ? settingsSnap.data() : {};
 
-  if (!daySnap.exists()) {
-    message.innerText = "That day is not configured.";
-    return;
-  }
+      if (settings?.picksLocked) {
+        message.innerText = "Picks are locked.";
+        return;
+      }
 
-  const dayData = daySnap.data();
+      if (settings?.lockTime) {
+        const now = new Date();
+        const globalLockTime = settings.lockTime.toDate();
+        if (now >= globalLockTime) {
+          message.innerText = "Picks are locked.";
+          return;
+        }
+      }
 
-  // Lock check for selected day
-  if (dayData?.lockTime) {
-    const now = new Date();
-    const lockTime = dayData.lockTime.toDate();
+      const dayRef = doc(db, "days", selectedDay);
+      const daySnap = await getDoc(dayRef);
 
-    if (now >= lockTime) {
-      message.innerText = "Picks are locked for that day.";
-      return;
-    }
-  }
+      if (!daySnap.exists()) {
+        message.innerText = "That day is not configured.";
+        return;
+      }
 
-  const playerRef = doc(db, "players", name);
-  const playerSnap = await getDoc(playerRef);
+      const dayData = daySnap.data();
 
-  let picks = {};
-  let status = "alive";
+      if (dayData?.lockTime) {
+        const now = new Date();
+        const dayLockTime = dayData.lockTime.toDate();
 
-  if (playerSnap.exists()) {
-    const data = playerSnap.data();
-    picks = data.picks || {};
-    status = data.status || "alive";
+        if (now >= dayLockTime) {
+          message.innerText = "Picks are locked for that day.";
+          return;
+        }
+      }
 
-    if (status === "eliminated") {
-      message.innerText = "You have been eliminated.";
-      return;
-    }
-  }
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
 
-  // Disallow reusing a team on any OTHER day
-  const usedTeamsOnOtherDays = Object.entries(picks)
-    .filter(([dayKey]) => dayKey !== selectedDay)
-    .map(([, pickedTeam]) => pickedTeam);
+      let picks = {};
+      let status = "alive";
 
-  if (usedTeamsOnOtherDays.includes(team)) {
-    message.innerText = "You already used that team on a prior day.";
-    return;
-  }
+      if (playerSnap.exists()) {
+        const data = playerSnap.data();
+        picks = data.picks || {};
+        status = data.status || "alive";
 
-  // Overwrite allowed for the SAME day before lock
-  picks[selectedDay] = team;
+        if (status === "eliminated") {
+          message.innerText = "You have been eliminated.";
+          return;
+        }
+      }
 
-  await setDoc(
-    playerRef,
-    {
-      name: name,
-      status: status,
-      picks: picks
-    },
-    { merge: true }
-  );
+      const usedTeamsOnOtherDays = Object.entries(picks)
+        .filter(([dayKey]) => dayKey !== selectedDay)
+        .map(([, pickedTeam]) => pickedTeam);
 
-  message.innerText = "Pick Submitted - Good Luck!";
-};
+      if (usedTeamsOnOtherDays.includes(team)) {
+        message.innerText = "You already used that team on a prior day.";
+        return;
+      }
+
+      picks[selectedDay] = team;
+
+      await setDoc(
+        playerRef,
+        {
+          name: name,
+          status: status,
+          picks: picks
+        },
+        { merge: true }
+      );
 
       message.innerText = "Pick Submitted - Good Luck!";
     };
@@ -586,13 +596,13 @@
       await updateDoc(doc(db, "settings", "global"), {
         picksLocked: lock
       });
-      alert("Lock updated.");
+      alert("Global lock updated.");
     };
 
     window.setLockTime = async function() {
       const input = document.getElementById("lockTimeInput").value;
       if (!input) {
-        alert("Enter a lock time.");
+        alert("Enter a global lock time.");
         return;
       }
 
@@ -602,7 +612,7 @@
         lockTime: date
       });
 
-      alert("Lock time updated.");
+      alert("Global lock time updated.");
     };
 
     window.setCurrentDay = async function() {
@@ -625,7 +635,7 @@
       if (!team) return;
 
       const settingsSnap = await getDoc(doc(db, "settings", "global"));
-      const settings = settingsSnap.data();
+      const settings = settingsSnap.exists() ? settingsSnap.data() : {};
       const currentDay = settings?.currentDay;
 
       if (!currentDay) {
@@ -671,9 +681,9 @@
       alert("Advanced to " + nextDay);
     };
 
-   loadStandings();
-loadTeams();
-loadDays();
+    loadStandings();
+    loadTeams();
+    loadDays();
   </script>
 </body>
 </html>
