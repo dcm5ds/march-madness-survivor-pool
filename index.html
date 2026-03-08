@@ -176,6 +176,7 @@
       color: #444;
       font-style: italic;
       font-weight: 600;
+      background: #f3f3f3;
     }
 
     .pick-cell {
@@ -188,6 +189,57 @@
     .pick-logo {
       width: 20px;
       height: 20px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .team-select-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .selected-team-logo-wrap {
+      width: 42px;
+      height: 42px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+    }
+
+    .selected-team-logo {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .team-preview-list {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+      max-width: 700px;
+    }
+
+    .team-preview-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px 8px;
+      color: #222;
+      font-size: 14px;
+    }
+
+    .team-preview-item img {
+      width: 22px;
+      height: 22px;
       object-fit: contain;
       flex-shrink: 0;
     }
@@ -230,6 +282,10 @@
       input[type="datetime-local"],
       select {
         width: 100%;
+      }
+
+      .team-preview-list {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -276,7 +332,14 @@
     <br /><br />
 
     <label for="teamSelect"><strong>Select Team:</strong></label><br />
-    <select id="teamSelect"></select>
+    <div class="team-select-row">
+      <select id="teamSelect" onchange="updateSelectedTeamLogo()"></select>
+      <div id="selectedTeamLogoWrap" class="selected-team-logo-wrap">
+        <img id="selectedTeamLogo" class="selected-team-logo" src="" alt="" style="display:none;" />
+      </div>
+    </div>
+
+    <div id="teamPreviewList" class="team-preview-list"></div>
     <br />
 
     <button class="action-button" onclick="submitPick()">Submit Pick</button>
@@ -344,6 +407,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let cachedTeamsMap = {};
+    let cachedDays = [];
+    let cachedPlayers = [];
+
     window.switchTab = function(tab) {
       document.querySelectorAll(".content").forEach(c => c.classList.remove("active"));
       document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -408,6 +475,18 @@
       }
     }
 
+    async function loadTeamsMap() {
+      const snapshot = await getDocs(collection(db, "teams"));
+      const map = {};
+
+      snapshot.forEach(docSnap => {
+        map[docSnap.id] = docSnap.data();
+      });
+
+      cachedTeamsMap = map;
+      return map;
+    }
+
     async function getAllAvailableTeams() {
       const snapshot = await getDocs(collection(db, "teams"));
       let teams = [];
@@ -425,6 +504,39 @@
       return teams;
     }
 
+    window.updateSelectedTeamLogo = function() {
+      const selectedTeam = document.getElementById("teamSelect").value;
+      const img = document.getElementById("selectedTeamLogo");
+
+      if (!selectedTeam || !cachedTeamsMap[selectedTeam]?.logo) {
+        img.style.display = "none";
+        img.src = "";
+        img.alt = "";
+        return;
+      }
+
+      img.src = cachedTeamsMap[selectedTeam].logo;
+      img.alt = selectedTeam;
+      img.style.display = "block";
+    };
+
+    function renderTeamPreviewList(teamNames) {
+      const teamPreviewList = document.getElementById("teamPreviewList");
+      teamPreviewList.innerHTML = "";
+
+      teamNames.forEach(team => {
+        const logo = cachedTeamsMap[team]?.logo || "";
+        const item = document.createElement("div");
+        item.className = "team-preview-item";
+
+        item.innerHTML = logo
+          ? `<img src="${logo}" alt="${team}"><span>${team}</span>`
+          : `<span>${team}</span>`;
+
+        teamPreviewList.appendChild(item);
+      });
+    }
+
     window.refreshAvailableTeams = async function() {
       const select = document.getElementById("teamSelect");
       const name = document.getElementById("playerName").value.trim();
@@ -432,12 +544,16 @@
 
       select.innerHTML = `<option value="">-- Select a Team --</option>`;
 
+      await loadTeamsMap();
       const allTeams = await getAllAvailableTeams();
 
       if (!name || !selectedDay) {
         allTeams.forEach(team => {
           select.innerHTML += `<option value="${team}">${team}</option>`;
         });
+
+        renderTeamPreviewList(allTeams);
+        updateSelectedTeamLogo();
         return;
       }
 
@@ -465,6 +581,9 @@
         const isSelected = team === currentDayPick ? "selected" : "";
         select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
       });
+
+      renderTeamPreviewList(filteredTeams);
+      updateSelectedTeamLogo();
     };
 
     async function loadDays() {
@@ -482,6 +601,7 @@
       });
 
       days.sort((a, b) => a.order - b.order);
+      cachedDays = days;
 
       days.forEach(day => {
         select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
@@ -490,101 +610,133 @@
       refreshAvailableTeams();
     }
 
-    function loadStandings() {
-      const playersRef = collection(db, "players");
+    async function autoEliminateMissingPicks(days, playerDocs) {
+      const now = new Date();
 
-      onSnapshot(playersRef, async (playerSnapshot) => {
-        const [daysSnap, teamsSnap] = await Promise.all([
-          getDocs(collection(db, "days")),
-          getDocs(collection(db, "teams"))
-        ]);
+      for (const playerDoc of playerDocs) {
+        const data = playerDoc.data();
+        const playerId = playerDoc.id;
+        const picks = data.picks || {};
+        const currentStatus = data.status || "alive";
 
-        let days = [];
-        let teamsMap = {};
-        let aliveCount = 0;
+        if (currentStatus !== "alive") continue;
 
-        daysSnap.forEach(docSnap => {
-          days.push({
-            id: docSnap.id,
-            ...docSnap.data()
+        let shouldEliminate = false;
+
+        for (const day of days) {
+          if (!day.lockTime) continue;
+
+          const dayLockTime =
+            typeof day.lockTime.toDate === "function"
+              ? day.lockTime.toDate()
+              : new Date(day.lockTime);
+
+          const dayHasLocked = now >= dayLockTime;
+          const playerHasPick = !!picks[day.id];
+
+          if (dayHasLocked && !playerHasPick) {
+            shouldEliminate = true;
+            break;
+          }
+        }
+
+        if (shouldEliminate) {
+          await updateDoc(doc(db, "players", playerId), {
+            status: "eliminated"
           });
-        });
+        }
+      }
+    }
 
-        days.sort((a, b) => a.order - b.order);
+    async function renderStandings() {
+      const tbody = document.querySelector("#standingsTable tbody");
+      const thead = document.querySelector("#standingsTable thead");
 
-        teamsSnap.forEach(docSnap => {
-          teamsMap[docSnap.id] = docSnap.data();
-        });
+      const days = [...cachedDays].sort((a, b) => a.order - b.order);
+      const playerDocs = cachedPlayers;
 
-        const tbody = document.querySelector("#standingsTable tbody");
-        const thead = document.querySelector("#standingsTable thead");
-
+      if (!days.length) {
         thead.innerHTML = `
-          <tr>
-            <th></th>
-            ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
-          </tr>
-          <tr>
-            <th>Name</th>
-            ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
-          </tr>
+          <tr><th></th></tr>
+          <tr><th>Name</th></tr>
         `;
-
         tbody.innerHTML = "";
+        document.getElementById("remainingCount").innerText = "Remaining Players: 0";
+        return;
+      }
 
-        playerSnapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const picks = data.picks || {};
+      await autoEliminateMissingPicks(days, playerDocs);
 
-          if (data.status === "alive") aliveCount++;
+      thead.innerHTML = `
+        <tr>
+          <th></th>
+          ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
+        </tr>
+        <tr>
+          <th>Name</th>
+          ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
+        </tr>
+      `;
 
-          let eliminatedReached = false;
-          let row = `<tr>`;
-          row += `<td>${data.name || docSnap.id}</td>`;
+      tbody.innerHTML = "";
 
-          for (const day of days) {
-            const pick = picks[day.id] || "";
-            const winningTeams = day.winningTeams || [];
-            const losingTeams = day.losingTeams || [];
-            const revealed = isDayRevealed(day);
+      let aliveCount = 0;
 
-            let cellClass = "";
-            let cellContent = "";
+      playerDocs.forEach(playerDoc => {
+        const data = playerDoc.data();
+        const picks = data.picks || {};
+        const playerStatus = data.status || "alive";
 
-            if (eliminatedReached) {
-              cellClass = "eliminatedCell";
-              cellContent = "Eliminated";
-            } else if (!revealed) {
-              if (pick) {
-                cellClass = "hiddenPickCell";
-                cellContent = "Pick Submitted";
-              } else {
-                cellClass = "hiddenPickCell";
-                cellContent = "No Pick";
-              }
-            } else if (!pick) {
-              cellContent = "No Pick";
-            } else if (losingTeams.includes(pick)) {
-              cellClass = "lossCell";
-              cellContent = renderPickCell(pick, teamsMap);
-              eliminatedReached = true;
-            } else if (winningTeams.includes(pick)) {
-              cellClass = "winCell";
-              cellContent = renderPickCell(pick, teamsMap);
+        if (playerStatus === "alive") aliveCount++;
+
+        let eliminatedReached = false;
+        let row = `<tr>`;
+        row += `<td>${data.name || playerDoc.id}</td>`;
+
+        for (const day of days) {
+          const pick = picks[day.id] || "";
+          const winningTeams = day.winningTeams || [];
+          const losingTeams = day.losingTeams || [];
+          const revealed = isDayRevealed(day);
+
+          let cellClass = "";
+          let cellContent = "";
+
+          if (eliminatedReached) {
+            cellClass = "eliminatedCell";
+            cellContent = "Eliminated";
+          } else if (!revealed) {
+            if (pick) {
+              cellClass = "hiddenPickCell";
+              cellContent = "Pick Submitted";
             } else {
-              cellContent = renderPickCell(pick, teamsMap);
+              cellClass = "hiddenPickCell";
+              cellContent = "No Pick";
             }
-
-            row += `<td class="${cellClass}">${cellContent}</td>`;
+          } else if (!pick) {
+            cellClass = "lossCell";
+            cellContent = "No Pick";
+            eliminatedReached = true;
+          } else if (losingTeams.includes(pick)) {
+            cellClass = "lossCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap);
+            eliminatedReached = true;
+          } else if (winningTeams.includes(pick)) {
+            cellClass = "winCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap);
+          } else {
+            cellContent = renderPickCell(pick, cachedTeamsMap);
           }
 
-          row += `</tr>`;
-          tbody.innerHTML += row;
-        });
+          row += `<td class="${cellClass}">${cellContent}</td>`;
+        }
 
-        document.getElementById("remainingCount").innerText =
-          "Remaining Players: " + aliveCount;
+        row += `</tr>`;
+        tbody.innerHTML += row;
       });
+
+      document.getElementById("remainingCount").innerText =
+        "Remaining Players: " + aliveCount;
     }
 
     window.submitPick = async function() {
@@ -619,6 +771,7 @@
       if (settings?.lockTime) {
         const now = new Date();
         const globalLockTime = settings.lockTime.toDate();
+
         if (now >= globalLockTime) {
           message.innerText = "Picks are locked.";
           return;
@@ -689,14 +842,19 @@
 
     window.toggleLock = async function() {
       const lock = document.getElementById("lockToggle").checked;
-      await updateDoc(doc(db, "settings", "global"), {
-        picksLocked: lock
-      });
+
+      await setDoc(
+        doc(db, "settings", "global"),
+        { picksLocked: lock },
+        { merge: true }
+      );
+
       alert("Global lock updated.");
     };
 
     window.setLockTime = async function() {
       const input = document.getElementById("lockTimeInput").value;
+
       if (!input) {
         alert("Enter a global lock time.");
         return;
@@ -704,9 +862,11 @@
 
       const date = new Date(input);
 
-      await updateDoc(doc(db, "settings", "global"), {
-        lockTime: date
-      });
+      await setDoc(
+        doc(db, "settings", "global"),
+        { lockTime: date },
+        { merge: true }
+      );
 
       alert("Global lock time updated.");
     };
@@ -719,9 +879,11 @@
         return;
       }
 
-      await updateDoc(doc(db, "settings", "global"), {
-        currentDay: day
-      });
+      await setDoc(
+        doc(db, "settings", "global"),
+        { currentDay: day },
+        { merge: true }
+      );
 
       alert("Current day updated to " + day);
     };
@@ -750,7 +912,7 @@
         const picks = data.picks || {};
 
         if (picks[currentDay] === team && data.status === "alive") {
-          await updateDoc(doc(db, "players", data.name), {
+          await updateDoc(doc(db, "players", docSnap.id), {
             status: "eliminated"
           });
         }
@@ -768,18 +930,75 @@
         return;
       }
 
-      await updateDoc(doc(db, "settings", "global"), {
-        currentDay: nextDay,
-        picksLocked: false,
-        lockTime: null
-      });
+      await setDoc(
+        doc(db, "settings", "global"),
+        {
+          currentDay: nextDay,
+          picksLocked: false,
+          lockTime: null
+        },
+        { merge: true }
+      );
 
       alert("Advanced to " + nextDay);
     };
 
-    loadStandings();
+    function subscribeToData() {
+      onSnapshot(collection(db, "players"), async (snapshot) => {
+        cachedPlayers = snapshot.docs;
+        await renderStandings();
+      });
+
+      onSnapshot(collection(db, "days"), async (snapshot) => {
+        let days = [];
+
+        snapshot.forEach(docSnap => {
+          days.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        days.sort((a, b) => a.order - b.order);
+        cachedDays = days;
+
+        const select = document.getElementById("daySelect");
+        const currentValue = select.value;
+
+        select.innerHTML = `<option value="">-- Select a Day --</option>`;
+        days.forEach(day => {
+          select.innerHTML += `<option value="${day.id}">${day.label || day.id}</option>`;
+        });
+
+        if (days.some(day => day.id === currentValue)) {
+          select.value = currentValue;
+        }
+
+        await refreshAvailableTeams();
+        await renderStandings();
+      });
+
+      onSnapshot(collection(db, "teams"), async (snapshot) => {
+        const map = {};
+
+        snapshot.forEach(docSnap => {
+          map[docSnap.id] = docSnap.data();
+        });
+
+        cachedTeamsMap = map;
+        await refreshAvailableTeams();
+        await renderStandings();
+      });
+    }
+
     loadDays();
+    loadTeamsMap();
+    subscribeToData();
     refreshAvailableTeams();
+
+    setInterval(async () => {
+      await renderStandings();
+    }, 30000);
   </script>
 </body>
 </html>
