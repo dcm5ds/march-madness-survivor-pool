@@ -48,25 +48,33 @@
 table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 14px;
 }
 
-th {
-  background: #134611;
-  color: white;
+thead tr:first-child {
+  background: #ffeb3b;
+  font-weight: bold;
+  text-align: center;
+}
+
+thead tr:nth-child(2) {
+  background: #ddd;
 }
 
 th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding: 6px;
+  border: 1px solid #ccc;
+  text-align: center;
 }
 
-tr.alive {
-  background: #e6ffe6;
+td:first-child {
+  text-align: left;
+  font-weight: bold;
 }
 
-tr.eliminated {
-  background: #ffe6e6;
-  color: #999;
+.eliminatedCell {
+  background: black;
+  color: white;
 }
 
 .admin {
@@ -195,51 +203,65 @@ async function loadStandings() {
 
   onSnapshot(playersRef, async (snapshot) => {
 
-    const settingsSnap = await getDoc(doc(db, "settings", "global"));
-    const settings = settingsSnap.data();
+    const daysSnap = await getDocs(collection(db, "days"));
+
+    let days = [];
+
+    daysSnap.forEach(docSnap => {
+      days.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+
+    days.sort((a, b) => a.order - b.order);
 
     const tbody = document.querySelector("#standingsTable tbody");
     const thead = document.querySelector("#standingsTable thead");
 
-    let allDays = [];
     let aliveCount = 0;
 
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      const picks = data.picks || {};
-
-      if (data.status === "alive") aliveCount++;
-
-      Object.keys(picks).forEach(day => {
-        if (!allDays.includes(day)) {
-          allDays.push(day);
-        }
-      });
-    });
-
-    allDays.sort();
-
+    // 🔹 BUILD HEADER (2 ROWS)
     thead.innerHTML = `
       <tr>
+        <th></th>
+        ${days.map(day => `<th>${day.cutoff}</th>`).join("")}
+      </tr>
+      <tr>
         <th>Name</th>
-        <th>Status</th>
-        ${allDays.map(day => `<th>${day}</th>`).join("")}
+        ${days.map(day => `<th>${day.label}</th>`).join("")}
       </tr>
     `;
 
     tbody.innerHTML = "";
 
     snapshot.forEach(docSnap => {
+
       const data = docSnap.data();
       const picks = data.picks || {};
 
-      tbody.innerHTML += `
-        <tr class="${data.status}">
-          <td>${data.name}</td>
-          <td>${data.status}</td>
-          ${allDays.map(day => `<td>${picks[day] || ""}</td>`).join("")}
-        </tr>
-      `;
+      if (data.status === "alive") aliveCount++;
+
+      let row = `<tr>`;
+
+      row += `<td>${data.name}</td>`;
+
+      days.forEach(day => {
+
+        let value = picks[day.id] || "";
+
+        let cellClass = "";
+
+        if (data.status === "eliminated" && value) {
+          cellClass = "eliminatedCell";
+        }
+
+        row += `<td class="${cellClass}">${value}</td>`;
+      });
+
+      row += `</tr>`;
+
+      tbody.innerHTML += row;
     });
 
     document.getElementById("remainingCount").innerText =
