@@ -836,17 +836,19 @@
       `;
     }
 
-    function isDayRevealed(day) {
-      if (!day?.lockTime) return false;
+   function isDayRevealed(day) {
+  if (day?.picksLocked) return true;
 
-      const now = new Date();
-      const revealTime =
-        typeof day.lockTime.toDate === "function"
-          ? day.lockTime.toDate()
-          : new Date(day.lockTime);
+  if (!day?.lockTime) return false;
 
-      return now >= revealTime;
-    }
+  const now = new Date();
+  const revealTime =
+    typeof day.lockTime.toDate === "function"
+      ? day.lockTime.toDate()
+      : new Date(day.lockTime);
+
+  return now >= revealTime;
+}
 
     function formatCutoff(day) {
       if (!day?.lockTime) return day.cutoff || "";
