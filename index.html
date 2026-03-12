@@ -189,6 +189,23 @@
       background: #0f3810;
     }
 
+    .hero-link-button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+    .hero-link-button {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  background: #0a66c2;
+}
+
+.hero-link-button:hover {
+  background: #084c91;
+}
+
     .home-card {
       background: #f8f8f8;
       border: 1px solid #ddd;
@@ -197,6 +214,14 @@
       margin-bottom: 18px;
     }
 
+    .home-card a {
+  color: #0a66c2;
+  font-weight: 600;
+}
+
+.home-card a:hover {
+  color: #084c91;
+}
     .home-card h3 {
       margin-bottom: 10px;
       color: #134611;
@@ -530,11 +555,14 @@
         Welcome to the pool. Review the rules, sign up, check the standings, and submit your picks.
       </p>
 
-      <div class="hero-buttons">
-        <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
-        <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
-        <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
-      </div>
+     <div class="hero-buttons">
+  <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
+  <a class="hero-button hero-link-button" href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
+    Pay Entry Fee
+  </a>
+  <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
+  <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
+</div>
     </div>
 
     <div class="home-card">
@@ -550,7 +578,14 @@
       <h3>How to Play</h3>
       <ul>
         <li>Sign Up using the link above, using your full name, email address, and phone number.</li>
-        <li>Entry fee is $5, which is due by 3/20 at noon. My Venmo is @David-McQuillen. If you don't have Venmo, shoot me a text.</li>
+        <li>
+  Entry fee is $5, which is due by 3/20 at noon.
+  My Venmo is
+  <a href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
+    @David-McQuillen
+  </a>.
+  If you don't have Venmo, shoot me a text.
+</li>
         <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up (an error message will pop up if it doesn't).  
         <li>You may change your pick as many times as you want up until the tipoff of the first game that day.</li>
         <li>Once a pick has been made, you will see "Pick Submitted" next to your name in the Standings. After the cutoff time for each day, the final picks for the entire pool will be revealed.</li>
