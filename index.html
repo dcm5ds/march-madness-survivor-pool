@@ -605,7 +605,7 @@
   </a>.
   If you don't have Venmo, shoot me a text.
 </li>
-        <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up (an error message will pop up if it doesn't).  
+        <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up (an error message will pop up if it doesn't).</li>  
         <li>You may change your pick as many times as you want up until the tipoff of the first game that day.</li>
         <li>Once a pick has been made, you will see "Pick Submitted" next to your name in the Standings. After the cutoff time for each day, the final picks for the entire pool will be revealed.</li>
         <li>If you do not submit a pick before the lock time, you are eliminated.</li>
@@ -1038,96 +1038,95 @@ function renderPickCell(teamName, teamsMap, result = "") {
     }
 
     async function renderStandings() {
-      const tbody = document.querySelector("#standingsTable tbody");
-      const thead = document.querySelector("#standingsTable thead");
+  const tbody = document.querySelector("#standingsTable tbody");
+  const thead = document.querySelector("#standingsTable thead");
 
-      const days = [...cachedDays].sort((a, b) => a.order - b.order);
-      const playerDocs = cachedPlayers;
+  const days = [...cachedDays].sort((a, b) => a.order - b.order);
+  const playerDocs = cachedPlayers;
 
-      if (!days.length) {
-        thead.innerHTML = `
-          <tr><th></th></tr>
-          <tr><th>Name</th></tr>
-        `;
-        tbody.innerHTML = "";
-        document.getElementById("remainingCount").innerText = "Remaining Players: 0";
-        return;
+  if (!days.length) {
+    thead.innerHTML = `
+      <tr><th></th></tr>
+      <tr><th>Name</th></tr>
+    `;
+    tbody.innerHTML = "";
+    document.getElementById("remainingCount").innerText = "Remaining Players: 0";
+    return;
+  }
+
+  await autoEliminateMissingPicks(days, playerDocs);
+
+  thead.innerHTML = `
+    <tr>
+      <th></th>
+      ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
+    </tr>
+    <tr>
+      <th>Name</th>
+      ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
+    </tr>
+  `;
+
+  tbody.innerHTML = "";
+
+  let aliveCount = 0;
+
+  playerDocs.forEach(playerDoc => {
+    const data = playerDoc.data();
+    const picks = data.picks || {};
+    const playerStatus = data.status || "alive";
+
+    if (playerStatus === "alive") aliveCount++;
+
+    let eliminatedReached = false;
+    let row = `<tr>`;
+    row += `<td>${data.name || playerDoc.id}</td>`;
+
+    for (const day of days) {
+      const pick = picks[day.id] || "";
+      const winningTeams = day.winningTeams || [];
+      const losingTeams = day.losingTeams || [];
+      const revealed = isDayRevealed(day);
+
+      let cellClass = "";
+      let cellContent = "";
+
+      if (eliminatedReached) {
+        cellClass = "eliminatedCell";
+        cellContent = "Eliminated";
+      } else if (!revealed) {
+        if (pick) {
+          cellClass = "pickSubmittedCell";
+          cellContent = "Pick Submitted";
+        } else {
+          cellClass = "noPickCell";
+          cellContent = "No Pick";
+        }
+      } else if (!pick) {
+        cellClass = "lossCell";
+        cellContent = "No Pick";
+        eliminatedReached = true;
+      } else if (losingTeams.includes(pick)) {
+        cellClass = "lossCell";
+        cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
+        eliminatedReached = true;
+      } else if (winningTeams.includes(pick)) {
+        cellClass = "winCell";
+        cellContent = renderPickCell(pick, cachedTeamsMap, "win");
+      } else {
+        cellContent = renderPickCell(pick, cachedTeamsMap);
       }
 
-      await autoEliminateMissingPicks(days, playerDocs);
-
-      thead.innerHTML = `
-        <tr>
-          <th></th>
-          ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
-        </tr>
-        <tr>
-          <th>Name</th>
-          ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
-        </tr>
-      `;
-
-      tbody.innerHTML = "";
-
-      let aliveCount = 0;
-
-      playerDocs.forEach(playerDoc => {
-        const data = playerDoc.data();
-        const picks = data.picks || {};
-        const playerStatus = data.status || "alive";
-
-        if (playerStatus === "alive") aliveCount++;
-
-        let eliminatedReached = false;
-        let row = `<tr>`;
-        row += `<td>${data.name || playerDoc.id}</td>`;
-
-        for (const day of days) {
-          const pick = picks[day.id] || "";
-          const winningTeams = day.winningTeams || [];
-          const losingTeams = day.losingTeams || [];
-          const revealed = isDayRevealed(day);
-
-          let cellClass = "";
-          let cellContent = "";
-
-          if (eliminatedReached) {
-            cellClass = "eliminatedCell";
-            cellContent = "Eliminated";
-          } else if (!revealed) {
-  if (pick) {
-    cellClass = "pickSubmittedCell";
-    cellContent = "Pick Submitted";
-  } else {
-    cellClass = "noPickCell";
-    cellContent = "No Pick";
-  }
-}
-          } else if (!pick) {
-            cellClass = "lossCell";
-            cellContent = "No Pick";
-            eliminatedReached = true;
-          } } else if (losingTeams.includes(pick)) {
-  cellClass = "lossCell";
-  cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
-  eliminatedReached = true;
-} else if (winningTeams.includes(pick)) {
-  cellClass = "winCell";
-  cellContent = renderPickCell(pick, cachedTeamsMap, "win");
-} else {
-  cellContent = renderPickCell(pick, cachedTeamsMap);
-}
-
-          row += `<td class="${cellClass}">${cellContent}</td>`;
-        }
-
-        row += `</tr>`;
-        tbody.innerHTML += row;
-      });
-
-      document.getElementById("remainingCount").innerText =
-        "Remaining Players: " + aliveCount;
+      row += `<td class="${cellClass}">${cellContent}</td>`;
     }
+
+    row += `</tr>`;
+    tbody.innerHTML += row;
+  });
+
+  document.getElementById("remainingCount").innerText =
+    "Remaining Players: " + aliveCount;
+}
 
     window.submitSignup = async function() {
       const name = document.getElementById("signupName").value.trim();
