@@ -378,18 +378,37 @@
       background: black !important;
       color: white !important;
     }
+    .result-icon {
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-block;
+  min-width: 14px;
+}
 
-    .hiddenPickCell {
-      color: #444;
-      font-style: italic;
-      font-weight: 600;
-      background: #f3f3f3;
-    }
+.win-icon {
+  color: #1b5e20;
+}
+
+.loss-icon {
+  color: #b71c1c;
+}
+.pickSubmittedCell {
+  background: #fff59d;   /* yellow */
+  color: #5f4b00;
+  font-weight: bold;
+}
+
+.noPickCell {
+  background: #bbdefb;   /* blue */
+  color: #0d47a1;
+  font-weight: bold;
+}
 
     .pick-cell {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       justify-content: flex-start;
     }
 
@@ -790,24 +809,33 @@
       }
     };
 
-    function renderPickCell(teamName, teamsMap) {
-      const logo = teamsMap[teamName]?.logo;
+function renderPickCell(teamName, teamsMap, result = "") {
+  const logo = teamsMap[teamName]?.logo;
 
-      if (logo) {
-        return `
-          <div class="pick-cell">
-            <img src="${logo}" alt="${teamName}" class="pick-logo">
-            <span>${teamName}</span>
-          </div>
-        `;
-      }
+  let iconHtml = "";
+  if (result === "win") {
+    iconHtml = `<span class="result-icon win-icon">✓</span>`;
+  } else if (result === "loss") {
+    iconHtml = `<span class="result-icon loss-icon">✗</span>`;
+  }
 
-      return `
-        <div class="pick-cell">
-          <span>${teamName}</span>
-        </div>
-      `;
-    }
+  if (logo) {
+    return `
+      <div class="pick-cell">
+        ${iconHtml}
+        <img src="${logo}" alt="${teamName}" class="pick-logo">
+        <span>${teamName}</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="pick-cell">
+      ${iconHtml}
+      <span>${teamName}</span>
+    </div>
+  `;
+}
 
     function isDayRevealed(day) {
       if (!day?.lockTime) return false;
@@ -1067,27 +1095,28 @@
             cellClass = "eliminatedCell";
             cellContent = "Eliminated";
           } else if (!revealed) {
-            if (pick) {
-              cellClass = "hiddenPickCell";
-              cellContent = "Pick Submitted";
-            } else {
-              cellClass = "hiddenPickCell";
-              cellContent = "No Pick";
-            }
+  if (pick) {
+    cellClass = "pickSubmittedCell";
+    cellContent = "Pick Submitted";
+  } else {
+    cellClass = "noPickCell";
+    cellContent = "No Pick";
+  }
+}
           } else if (!pick) {
             cellClass = "lossCell";
             cellContent = "No Pick";
             eliminatedReached = true;
-          } else if (losingTeams.includes(pick)) {
-            cellClass = "lossCell";
-            cellContent = renderPickCell(pick, cachedTeamsMap);
-            eliminatedReached = true;
-          } else if (winningTeams.includes(pick)) {
-            cellClass = "winCell";
-            cellContent = renderPickCell(pick, cachedTeamsMap);
-          } else {
-            cellContent = renderPickCell(pick, cachedTeamsMap);
-          }
+          } } else if (losingTeams.includes(pick)) {
+  cellClass = "lossCell";
+  cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
+  eliminatedReached = true;
+} else if (winningTeams.includes(pick)) {
+  cellClass = "winCell";
+  cellContent = renderPickCell(pick, cachedTeamsMap, "win");
+} else {
+  cellContent = renderPickCell(pick, cachedTeamsMap);
+}
 
           row += `<td class="${cellClass}">${cellContent}</td>`;
         }
