@@ -1016,17 +1016,29 @@
     }
 
     window.toggleDayLock = async function(dayId, isLocked) {
-      await setDoc(
-        doc(db, "days", dayId),
-        { picksLocked: isLocked },
-        { merge: true }
-      );
+  const dayIndex = cachedDays.findIndex(day => day.id === dayId);
 
-      const dayIndex = cachedDays.findIndex(day => day.id === dayId);
-      if (dayIndex !== -1) {
-        cachedDays[dayIndex].picksLocked = isLocked;
-      }
-    };
+  if (dayIndex !== -1) {
+    cachedDays[dayIndex].picksLocked = isLocked;
+  }
+
+  renderAdminLockControls();
+
+  try {
+    await setDoc(
+      doc(db, "days", dayId),
+      { picksLocked: isLocked },
+      { merge: true }
+    );
+  } catch (error) {
+    if (dayIndex !== -1) {
+      cachedDays[dayIndex].picksLocked = !isLocked;
+    }
+    renderAdminLockControls();
+    alert("Could not update that day lock.");
+    console.error(error);
+  }
+};
 
     async function autoEliminateMissingPicks(days, playerDocs) {
       const now = new Date();
