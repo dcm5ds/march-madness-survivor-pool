@@ -183,6 +183,9 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 15px;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
     }
 
     .hero-button:hover {
@@ -190,9 +193,6 @@
     }
 
     .hero-link-button {
-      display: inline-block;
-      text-decoration: none;
-      text-align: center;
       background: #0a66c2;
     }
 
@@ -480,7 +480,7 @@
 
     .admin-lock-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 10px;
       margin-top: 12px;
     }
@@ -498,6 +498,12 @@
       gap: 8px;
       color: #222;
       font-weight: 600;
+    }
+
+    .lock-status {
+      font-size: 12px;
+      color: #666;
+      margin-top: 6px;
     }
 
     @media (max-width: 768px) {
@@ -729,7 +735,7 @@
       <div id="teamPreviewList" class="team-preview-list"></div>
       <br />
 
-      <button class="action-button" onclick="submitPick()">Submit Pick</button>
+      <button class="action-button" type="button" onclick="submitPick()">Submit Pick</button>
 
       <p id="message"></p>
     </div>
@@ -763,6 +769,7 @@
     let cachedTeamsMap = {};
     let cachedDays = [];
     let cachedPlayers = [];
+    let adminUnlocked = false;
 
     window.openMenu = function() {
       document.getElementById("sideMenu").classList.add("open");
@@ -792,6 +799,7 @@
     window.unlockAdmin = function() {
       const key = prompt("Enter admin key:");
       if (key === "MM2026") {
+        adminUnlocked = true;
         document.getElementById("standingsAdmin").style.display = "block";
         renderAdminLockControls();
         alert("Admin unlocked.");
@@ -953,9 +961,7 @@
         .filter(([dayKey]) => dayKey !== selectedDay)
         .map(([, pickedTeam]) => pickedTeam);
 
-      const filteredTeams = allTeams.filter(team => {
-        return !usedTeamsOnOtherDays.includes(team);
-      });
+      const filteredTeams = allTeams.filter(team => !usedTeamsOnOtherDays.includes(team));
 
       filteredTeams.forEach(team => {
         const isSelected = team === currentDayPick ? "selected" : "";
@@ -990,7 +996,7 @@
       refreshAvailableTeams();
     }
 
-    async function renderAdminLockControls() {
+    function renderAdminLockControls() {
       const grid = document.getElementById("adminLockGrid");
       if (!grid) return;
 
@@ -1002,43 +1008,58 @@
         const item = document.createElement("div");
         item.className = "admin-lock-item";
 
-        const isLocked = !!day.picksLocked;
+        const label = document.createElement("label");
 
-        item.innerHTML = `
-          <label>
-            <input type="checkbox" ${isLocked ? "checked" : ""} onchange="toggleDayLock('${day.id}', this.checked)" />
-            ${day.label || day.id}
-          </label>
-        `;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = !!day.picksLocked;
+        checkbox.dataset.dayId = day.id;
 
+        checkbox.addEventListener("change", async (event) => {
+          const isLocked = event.target.checked;
+          const dayId = event.target.dataset.dayId;
+
+          event.target.disabled = true;
+
+          const dayIndex = cachedDays.findIndex(d => d.id === dayId);
+          const oldValue = dayIndex !== -1 ? !!cachedDays[dayIndex].picksLocked : false;
+
+          if (dayIndex !== -1) {
+            cachedDays[dayIndex].picksLocked = isLocked;
+          }
+
+          try {
+            await setDoc(
+              doc(db, "days", dayId),
+              { picksLocked: isLocked },
+              { merge: true }
+            );
+          } catch (error) {
+            if (dayIndex !== -1) {
+              cachedDays[dayIndex].picksLocked = oldValue;
+            }
+            event.target.checked = oldValue;
+            alert("Could not update that day lock.");
+            console.error(error);
+          } finally {
+            event.target.disabled = false;
+            renderAdminLockControls();
+          }
+        });
+
+        const text = document.createTextNode(day.label || day.id);
+        label.appendChild(checkbox);
+        label.appendChild(text);
+
+        const status = document.createElement("div");
+        status.className = "lock-status";
+        status.textContent = day.picksLocked ? "Locked" : "Unlocked";
+
+        item.appendChild(label);
+        item.appendChild(status);
         grid.appendChild(item);
       });
     }
-
-    window.toggleDayLock = async function(dayId, isLocked) {
-  const dayIndex = cachedDays.findIndex(day => day.id === dayId);
-
-  if (dayIndex !== -1) {
-    cachedDays[dayIndex].picksLocked = isLocked;
-  }
-
-  renderAdminLockControls();
-
-  try {
-    await setDoc(
-      doc(db, "days", dayId),
-      { picksLocked: isLocked },
-      { merge: true }
-    );
-  } catch (error) {
-    if (dayIndex !== -1) {
-      cachedDays[dayIndex].picksLocked = !isLocked;
-    }
-    renderAdminLockControls();
-    alert("Could not update that day lock.");
-    console.error(error);
-  }
-};
 
     async function autoEliminateMissingPicks(days, playerDocs) {
       const now = new Date();
@@ -1348,7 +1369,8 @@
         await refreshAvailableTeams();
         await renderStandings();
 
-        if (document.getElementById("standingsAdmin").style.display === "block") {
+        if (adminUnlocked) {
+          document.getElementById("standingsAdmin").style.display = "block";
           renderAdminLockControls();
         }
       });
