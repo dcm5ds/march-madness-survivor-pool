@@ -190,21 +190,15 @@
     }
 
     .hero-link-button {
-  display: inline-block;
-  text-decoration: none;
-  text-align: center;
-}
+      display: inline-block;
+      text-decoration: none;
+      text-align: center;
+      background: #0a66c2;
+    }
 
-    .hero-link-button {
-  display: inline-block;
-  text-decoration: none;
-  text-align: center;
-  background: #0a66c2;
-}
-
-.hero-link-button:hover {
-  background: #084c91;
-}
+    .hero-link-button:hover {
+      background: #084c91;
+    }
 
     .home-card {
       background: #f8f8f8;
@@ -215,13 +209,14 @@
     }
 
     .home-card a {
-  color: #0a66c2;
-  font-weight: 600;
-}
+      color: #0a66c2;
+      font-weight: 600;
+    }
 
-.home-card a:hover {
-  color: #084c91;
-}
+    .home-card a:hover {
+      color: #084c91;
+    }
+
     .home-card h3 {
       margin-bottom: 10px;
       color: #134611;
@@ -307,14 +302,6 @@
       font-weight: 700;
     }
 
-    .admin {
-      margin-top: 40px;
-      padding: 15px;
-      border: 2px dashed #aaa;
-      border-radius: 8px;
-      background: #f8f8f8;
-    }
-
     .table-wrapper {
       overflow-x: auto;
       width: 100%;
@@ -378,61 +365,34 @@
       background: black !important;
       color: white !important;
     }
+
     .result-icon {
-  font-weight: 900;
-  font-size: 16px;
-  line-height: 1;
-  display: inline-block;
-  min-width: 14px;
-}
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      min-width: 14px;
+    }
 
-.win-icon {
-  color: #1b5e20;
-}
-    .standings-admin {
-  margin-top: 18px;
-  padding: 16px;
-  border: 2px dashed #aaa;
-  border-radius: 8px;
-  background: #f8f8f8;
-}
+    .win-icon {
+      color: #1b5e20;
+    }
 
-.admin-lock-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
+    .loss-icon {
+      color: #b71c1c;
+    }
 
-.admin-lock-item {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-}
+    .pickSubmittedCell {
+      background: #fff59d;
+      color: #5f4b00;
+      font-weight: bold;
+    }
 
-.admin-lock-item label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #222;
-  font-weight: 600;
-}
-
-.loss-icon {
-  color: #b71c1c;
-}
-.pickSubmittedCell {
-  background: #fff59d;   /* yellow */
-  color: #5f4b00;
-  font-weight: bold;
-}
-
-.noPickCell {
-  background: #bbdefb;   /* blue */
-  color: #0d47a1;
-  font-weight: bold;
-}
+    .noPickCell {
+      background: #bbdefb;
+      color: #0d47a1;
+      font-weight: bold;
+    }
 
     .pick-cell {
       display: flex;
@@ -508,6 +468,36 @@
     .muted {
       color: #666;
       font-size: 14px;
+    }
+
+    .standings-admin {
+      margin-top: 18px;
+      padding: 16px;
+      border: 2px dashed #aaa;
+      border-radius: 8px;
+      background: #f8f8f8;
+    }
+
+    .admin-lock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .admin-lock-item {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .admin-lock-item label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #222;
+      font-weight: 600;
     }
 
     @media (max-width: 768px) {
@@ -603,22 +593,22 @@
         Welcome to the pool. Review the rules, sign up, check the standings, and submit your picks.
       </p>
 
-     <div class="hero-buttons">
-  <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
-  <a class="hero-button hero-link-button" href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
-    Pay Entry Fee
-  </a>
-  <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
-  <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
-</div>
+      <div class="hero-buttons">
+        <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
+        <a class="hero-button hero-link-button" href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
+          Pay Entry Fee
+        </a>
+        <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
+        <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
+      </div>
     </div>
 
     <div class="home-card">
       <h3>Overview</h3>
       <p>
-        For those that haven’t played before, the idea is to pick one team each day to advance in the tournament.  If they win you move on, if they lose you’re out - no buying back in.
-        Once you’ve picked a team, you cannot pick them again.  If you run out of teams to pick, you are considered out if there are still others alive.
-        Winner takes all if there is no tie.  In the event of a tie, the pot will be split up by adding up the seeds of the correct picks.
+        For those that haven’t played before, the idea is to pick one team each day to advance in the tournament. If they win you move on, if they lose you’re out - no buying back in.
+        Once you’ve picked a team, you cannot pick them again. If you run out of teams to pick, you are considered out if there are still others alive.
+        Winner takes all if there is no tie. In the event of a tie, the pot will be split up by adding up the seeds of the correct picks.
       </p>
     </div>
 
@@ -627,14 +617,14 @@
       <ul>
         <li>Sign Up using the link above, using your full name, email address, and phone number.</li>
         <li>
-  Entry fee is $5, which is due by 3/20 at noon.
-  My Venmo is
-  <a href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
-    @David-McQuillen
-  </a>.
-  If you don't have Venmo, shoot me a text.
-</li>
-        <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up (an error message will pop up if it doesn't).</li>  
+          Entry fee is $5, which is due by 3/20 at noon.
+          My Venmo is
+          <a href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
+            @David-McQuillen
+          </a>.
+          If you don't have Venmo, shoot me a text.
+        </li>
+        <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up (an error message will pop up if it doesn't).</li>
         <li>You may change your pick as many times as you want up until the tipoff of the first game that day.</li>
         <li>Once a pick has been made, you will see "Pick Submitted" next to your name in the Standings. After the cutoff time for each day, the final picks for the entire pool will be revealed.</li>
         <li>If you do not submit a pick before the lock time, you are eliminated.</li>
@@ -704,11 +694,12 @@
         <tbody></tbody>
       </table>
     </div>
+
     <div class="standings-admin" id="standingsAdmin" style="display:none;">
-  <h3>Admin Day Locks</h3>
-  <p class="muted">Check a box to lock picks for that day. Uncheck to unlock.</p>
-  <div id="adminLockGrid" class="admin-lock-grid"></div>
-</div>
+      <h3>Admin Day Locks</h3>
+      <p class="muted">Check a box to lock picks for that day. Uncheck to unlock.</p>
+      <div id="adminLockGrid" class="admin-lock-grid"></div>
+    </div>
   </div>
 
   <div id="pick" class="content">
@@ -742,7 +733,8 @@
 
       <p id="message"></p>
     </div>
-   
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
@@ -798,43 +790,43 @@
     };
 
     window.unlockAdmin = function() {
-  const key = prompt("Enter admin key:");
-  if (key === "MM2026") {
-    document.getElementById("standingsAdmin").style.display = "block";
-    renderAdminLockControls();
-    alert("Admin unlocked.");
-  } else {
-    alert("Incorrect key.");
-  }
-};
+      const key = prompt("Enter admin key:");
+      if (key === "MM2026") {
+        document.getElementById("standingsAdmin").style.display = "block";
+        renderAdminLockControls();
+        alert("Admin unlocked.");
+      } else {
+        alert("Incorrect key.");
+      }
+    };
 
-function renderPickCell(teamName, teamsMap, result = "") {
-  const logo = teamsMap[teamName]?.logo;
+    function renderPickCell(teamName, teamsMap, result = "") {
+      const logo = teamsMap[teamName]?.logo;
 
-  let iconHtml = "";
-  if (result === "win") {
-    iconHtml = `<span class="result-icon win-icon">✓</span>`;
-  } else if (result === "loss") {
-    iconHtml = `<span class="result-icon loss-icon">✗</span>`;
-  }
+      let iconHtml = "";
+      if (result === "win") {
+        iconHtml = `<span class="result-icon win-icon">✓</span>`;
+      } else if (result === "loss") {
+        iconHtml = `<span class="result-icon loss-icon">✗</span>`;
+      }
 
-  if (logo) {
-    return `
-      <div class="pick-cell">
-        ${iconHtml}
-        <img src="${logo}" alt="${teamName}" class="pick-logo">
-        <span>${teamName}</span>
-      </div>
-    `;
-  }
+      if (logo) {
+        return `
+          <div class="pick-cell">
+            ${iconHtml}
+            <img src="${logo}" alt="${teamName}" class="pick-logo">
+            <span>${teamName}</span>
+          </div>
+        `;
+      }
 
-  return `
-    <div class="pick-cell">
-      ${iconHtml}
-      <span>${teamName}</span>
-    </div>
-  `;
-}
+      return `
+        <div class="pick-cell">
+          ${iconHtml}
+          <span>${teamName}</span>
+        </div>
+      `;
+    }
 
     function isDayRevealed(day) {
       if (!day?.lockTime) return false;
@@ -997,44 +989,45 @@ function renderPickCell(teamName, teamsMap, result = "") {
 
       refreshAvailableTeams();
     }
-    
-async function renderAdminLockControls() {
-  const grid = document.getElementById("adminLockGrid");
-  if (!grid) return;
 
-  grid.innerHTML = "";
+    async function renderAdminLockControls() {
+      const grid = document.getElementById("adminLockGrid");
+      if (!grid) return;
 
-  const days = [...cachedDays].sort((a, b) => a.order - b.order);
+      grid.innerHTML = "";
 
-  days.forEach(day => {
-    const item = document.createElement("div");
-    item.className = "admin-lock-item";
+      const days = [...cachedDays].sort((a, b) => a.order - b.order);
 
-    const isLocked = !!day.picksLocked;
+      days.forEach(day => {
+        const item = document.createElement("div");
+        item.className = "admin-lock-item";
 
-    item.innerHTML = `
-      <label>
-        <input type="checkbox" ${isLocked ? "checked" : ""} onchange="toggleDayLock('${day.id}', this.checked)" />
-        ${day.label || day.id}
-      </label>
-    `;
+        const isLocked = !!day.picksLocked;
 
-    grid.appendChild(item);
-  });
-}
+        item.innerHTML = `
+          <label>
+            <input type="checkbox" ${isLocked ? "checked" : ""} onchange="toggleDayLock('${day.id}', this.checked)" />
+            ${day.label || day.id}
+          </label>
+        `;
 
-window.toggleDayLock = async function(dayId, isLocked) {
-  await setDoc(
-    doc(db, "days", dayId),
-    { picksLocked: isLocked },
-    { merge: true }
-  );
+        grid.appendChild(item);
+      });
+    }
 
-  const dayIndex = cachedDays.findIndex(day => day.id === dayId);
-  if (dayIndex !== -1) {
-    cachedDays[dayIndex].picksLocked = isLocked;
-  }
-};
+    window.toggleDayLock = async function(dayId, isLocked) {
+      await setDoc(
+        doc(db, "days", dayId),
+        { picksLocked: isLocked },
+        { merge: true }
+      );
+
+      const dayIndex = cachedDays.findIndex(day => day.id === dayId);
+      if (dayIndex !== -1) {
+        cachedDays[dayIndex].picksLocked = isLocked;
+      }
+    };
+
     async function autoEliminateMissingPicks(days, playerDocs) {
       const now = new Date();
 
@@ -1074,95 +1067,95 @@ window.toggleDayLock = async function(dayId, isLocked) {
     }
 
     async function renderStandings() {
-  const tbody = document.querySelector("#standingsTable tbody");
-  const thead = document.querySelector("#standingsTable thead");
+      const tbody = document.querySelector("#standingsTable tbody");
+      const thead = document.querySelector("#standingsTable thead");
 
-  const days = [...cachedDays].sort((a, b) => a.order - b.order);
-  const playerDocs = cachedPlayers;
+      const days = [...cachedDays].sort((a, b) => a.order - b.order);
+      const playerDocs = cachedPlayers;
 
-  if (!days.length) {
-    thead.innerHTML = `
-      <tr><th></th></tr>
-      <tr><th>Name</th></tr>
-    `;
-    tbody.innerHTML = "";
-    document.getElementById("remainingCount").innerText = "Remaining Players: 0";
-    return;
-  }
-
-  await autoEliminateMissingPicks(days, playerDocs);
-
-  thead.innerHTML = `
-    <tr>
-      <th></th>
-      ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
-    </tr>
-    <tr>
-      <th>Name</th>
-      ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
-    </tr>
-  `;
-
-  tbody.innerHTML = "";
-
-  let aliveCount = 0;
-
-  playerDocs.forEach(playerDoc => {
-    const data = playerDoc.data();
-    const picks = data.picks || {};
-    const playerStatus = data.status || "alive";
-
-    if (playerStatus === "alive") aliveCount++;
-
-    let eliminatedReached = false;
-    let row = `<tr>`;
-    row += `<td>${data.name || playerDoc.id}</td>`;
-
-    for (const day of days) {
-      const pick = picks[day.id] || "";
-      const winningTeams = day.winningTeams || [];
-      const losingTeams = day.losingTeams || [];
-      const revealed = isDayRevealed(day);
-
-      let cellClass = "";
-      let cellContent = "";
-
-      if (eliminatedReached) {
-        cellClass = "eliminatedCell";
-        cellContent = "Eliminated";
-      } else if (!revealed) {
-        if (pick) {
-          cellClass = "pickSubmittedCell";
-          cellContent = "Pick Submitted";
-        } else {
-          cellClass = "noPickCell";
-          cellContent = "No Pick";
-        }
-      } else if (!pick) {
-        cellClass = "lossCell";
-        cellContent = "No Pick";
-        eliminatedReached = true;
-      } else if (losingTeams.includes(pick)) {
-        cellClass = "lossCell";
-        cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
-        eliminatedReached = true;
-      } else if (winningTeams.includes(pick)) {
-        cellClass = "winCell";
-        cellContent = renderPickCell(pick, cachedTeamsMap, "win");
-      } else {
-        cellContent = renderPickCell(pick, cachedTeamsMap);
+      if (!days.length) {
+        thead.innerHTML = `
+          <tr><th></th></tr>
+          <tr><th>Name</th></tr>
+        `;
+        tbody.innerHTML = "";
+        document.getElementById("remainingCount").innerText = "Remaining Players: 0";
+        return;
       }
 
-      row += `<td class="${cellClass}">${cellContent}</td>`;
+      await autoEliminateMissingPicks(days, playerDocs);
+
+      thead.innerHTML = `
+        <tr>
+          <th></th>
+          ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
+        </tr>
+        <tr>
+          <th>Name</th>
+          ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
+        </tr>
+      `;
+
+      tbody.innerHTML = "";
+
+      let aliveCount = 0;
+
+      playerDocs.forEach(playerDoc => {
+        const data = playerDoc.data();
+        const picks = data.picks || {};
+        const playerStatus = data.status || "alive";
+
+        if (playerStatus === "alive") aliveCount++;
+
+        let eliminatedReached = false;
+        let row = `<tr>`;
+        row += `<td>${data.name || playerDoc.id}</td>`;
+
+        for (const day of days) {
+          const pick = picks[day.id] || "";
+          const winningTeams = day.winningTeams || [];
+          const losingTeams = day.losingTeams || [];
+          const revealed = isDayRevealed(day);
+
+          let cellClass = "";
+          let cellContent = "";
+
+          if (eliminatedReached) {
+            cellClass = "eliminatedCell";
+            cellContent = "Eliminated";
+          } else if (!revealed) {
+            if (pick) {
+              cellClass = "pickSubmittedCell";
+              cellContent = "Pick Submitted";
+            } else {
+              cellClass = "noPickCell";
+              cellContent = "No Pick";
+            }
+          } else if (!pick) {
+            cellClass = "lossCell";
+            cellContent = "No Pick";
+            eliminatedReached = true;
+          } else if (losingTeams.includes(pick)) {
+            cellClass = "lossCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
+            eliminatedReached = true;
+          } else if (winningTeams.includes(pick)) {
+            cellClass = "winCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap, "win");
+          } else {
+            cellContent = renderPickCell(pick, cachedTeamsMap);
+          }
+
+          row += `<td class="${cellClass}">${cellContent}</td>`;
+        }
+
+        row += `</tr>`;
+        tbody.innerHTML += row;
+      });
+
+      document.getElementById("remainingCount").innerText =
+        "Remaining Players: " + aliveCount;
     }
-
-    row += `</tr>`;
-    tbody.innerHTML += row;
-  });
-
-  document.getElementById("remainingCount").innerText =
-    "Remaining Players: " + aliveCount;
-}
 
     window.submitSignup = async function() {
       const name = document.getElementById("signupName").value.trim();
@@ -1260,21 +1253,6 @@ window.toggleDayLock = async function(dayId, isLocked) {
       }
 
       const dayRef = doc(db, "days", selectedDay);
-const daySnap = await getDoc(dayRef);
-
-if (!daySnap.exists()) {
-  message.innerText = "That day is not configured.";
-  return;
-}
-
-const dayData = daySnap.data();
-
-if (dayData?.picksLocked) {
-  message.innerText = "Picks are locked for that day.";
-  return;
-}
-
-      const dayRef = doc(db, "days", selectedDay);
       const daySnap = await getDoc(dayRef);
 
       if (!daySnap.exists()) {
@@ -1284,14 +1262,9 @@ if (dayData?.picksLocked) {
 
       const dayData = daySnap.data();
 
-      if (dayData?.lockTime) {
-        const now = new Date();
-        const dayLockTime = dayData.lockTime.toDate();
-
-        if (now >= dayLockTime) {
-          message.innerText = "Picks are locked for that day.";
-          return;
-        }
+      if (dayData?.picksLocked) {
+        message.innerText = "Picks are locked for that day.";
+        return;
       }
 
       let picks = playerData.picks || {};
@@ -1329,109 +1302,6 @@ if (dayData?.picksLocked) {
       refreshAvailableTeams();
     };
 
-    window.toggleLock = async function() {
-      const lock = document.getElementById("lockToggle").checked;
-
-      await setDoc(
-        doc(db, "settings", "global"),
-        { picksLocked: lock },
-        { merge: true }
-      );
-
-      alert("Global lock updated.");
-    };
-
-    window.setLockTime = async function() {
-      const input = document.getElementById("lockTimeInput").value;
-
-      if (!input) {
-        alert("Enter a global lock time.");
-        return;
-      }
-
-      const date = new Date(input);
-
-      await setDoc(
-        doc(db, "settings", "global"),
-        { lockTime: date },
-        { merge: true }
-      );
-
-      alert("Global lock time updated.");
-    };
-
-    window.setCurrentDay = async function() {
-      const day = document.getElementById("currentDayInput").value.trim();
-
-      if (!day) {
-        alert("Enter a day name.");
-        return;
-      }
-
-      await setDoc(
-        doc(db, "settings", "global"),
-        { currentDay: day },
-        { merge: true }
-      );
-
-      alert("Current day updated to " + day);
-    };
-
-    window.eliminateTeam = async function() {
-      const team = prompt("Enter team to eliminate:");
-      if (!team) return;
-
-      const settingsSnap = await getDoc(doc(db, "settings", "global"));
-      const settings = settingsSnap.exists() ? settingsSnap.data() : {};
-      const currentDay = settings?.currentDay;
-
-      if (!currentDay) {
-        alert("Current day not set.");
-        return;
-      }
-
-      await updateDoc(doc(db, "teams", team), {
-        eliminated: true
-      });
-
-      const playersSnap = await getDocs(collection(db, "players"));
-
-      for (const docSnap of playersSnap.docs) {
-        const data = docSnap.data();
-        const picks = data.picks || {};
-
-        if (picks[currentDay] === team && data.status === "alive") {
-          await updateDoc(doc(db, "players", docSnap.id), {
-            status: "eliminated"
-          });
-        }
-      }
-
-      alert(team + " eliminated. Standings updated.");
-      refreshAvailableTeams();
-    };
-
-    window.advanceDay = async function() {
-      const nextDay = document.getElementById("nextDayInput").value.trim();
-
-      if (!nextDay) {
-        alert("Enter next day name.");
-        return;
-      }
-
-      await setDoc(
-        doc(db, "settings", "global"),
-        {
-          currentDay: nextDay,
-          picksLocked: false,
-          lockTime: null
-        },
-        { merge: true }
-      );
-
-      alert("Advanced to " + nextDay);
-    };
-
     function subscribeToData() {
       onSnapshot(collection(db, "players"), async (snapshot) => {
         cachedPlayers = snapshot.docs;
@@ -1466,12 +1336,9 @@ if (dayData?.picksLocked) {
         await refreshAvailableTeams();
         await renderStandings();
 
-        await refreshAvailableTeams();
-await renderStandings();
-
-if (document.getElementById("standingsAdmin").style.display === "block") {
-  renderAdminLockControls();
-}
+        if (document.getElementById("standingsAdmin").style.display === "block") {
+          renderAdminLockControls();
+        }
       });
 
       onSnapshot(collection(db, "teams"), async (snapshot) => {
