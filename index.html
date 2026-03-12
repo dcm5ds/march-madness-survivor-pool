@@ -389,6 +389,35 @@
 .win-icon {
   color: #1b5e20;
 }
+    .standings-admin {
+  margin-top: 18px;
+  padding: 16px;
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  background: #f8f8f8;
+}
+
+.admin-lock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-lock-item {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.admin-lock-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #222;
+  font-weight: 600;
+}
 
 .loss-icon {
   color: #b71c1c;
@@ -675,6 +704,11 @@
         <tbody></tbody>
       </table>
     </div>
+    <div class="standings-admin" id="standingsAdmin" style="display:none;">
+  <h3>Admin Day Locks</h3>
+  <p class="muted">Check a box to lock picks for that day. Uncheck to unlock.</p>
+  <div id="adminLockGrid" class="admin-lock-grid"></div>
+</div>
   </div>
 
   <div id="pick" class="content">
@@ -708,43 +742,7 @@
 
       <p id="message"></p>
     </div>
-
-    <div class="admin" id="adminPanel" style="display:none;">
-      <h3>Admin Controls</h3>
-
-      <label>
-        <input type="checkbox" id="lockToggle" onchange="toggleLock()" />
-        Global Lock Picks
-      </label>
-
-      <br /><br />
-
-      <label>Set Global Lock Time:</label><br />
-      <input type="datetime-local" id="lockTimeInput" />
-      <button class="action-button" onclick="setLockTime()">Update Global Lock Time</button>
-
-      <br /><br />
-
-      <label>Set Current Day:</label><br />
-      <input type="text" id="currentDayInput" placeholder="Day1" />
-      <button class="action-button" onclick="setCurrentDay()">Update Day</button>
-
-      <br /><br />
-
-      <button class="action-button" onclick="eliminateTeam()">Eliminate Team</button>
-
-      <br /><br />
-
-      <label>Next Day:</label><br />
-      <input type="text" id="nextDayInput" placeholder="Day2" />
-      <button class="action-button" onclick="advanceDay()">Advance</button>
-
-      <p class="muted">
-        Team document IDs should match the team names exactly.
-      </p>
-    </div>
-  </div>
-
+   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
@@ -800,14 +798,15 @@
     };
 
     window.unlockAdmin = function() {
-      const key = prompt("Enter admin key:");
-      if (key === "MM2026") {
-        document.getElementById("adminPanel").style.display = "block";
-        alert("Admin unlocked.");
-      } else {
-        alert("Incorrect key.");
-      }
-    };
+  const key = prompt("Enter admin key:");
+  if (key === "MM2026") {
+    document.getElementById("standingsAdmin").style.display = "block";
+    renderAdminLockControls();
+    alert("Admin unlocked.");
+  } else {
+    alert("Incorrect key.");
+  }
+};
 
 function renderPickCell(teamName, teamsMap, result = "") {
   const logo = teamsMap[teamName]?.logo;
@@ -998,7 +997,44 @@ function renderPickCell(teamName, teamsMap, result = "") {
 
       refreshAvailableTeams();
     }
+    
+async function renderAdminLockControls() {
+  const grid = document.getElementById("adminLockGrid");
+  if (!grid) return;
 
+  grid.innerHTML = "";
+
+  const days = [...cachedDays].sort((a, b) => a.order - b.order);
+
+  days.forEach(day => {
+    const item = document.createElement("div");
+    item.className = "admin-lock-item";
+
+    const isLocked = !!day.picksLocked;
+
+    item.innerHTML = `
+      <label>
+        <input type="checkbox" ${isLocked ? "checked" : ""} onchange="toggleDayLock('${day.id}', this.checked)" />
+        ${day.label || day.id}
+      </label>
+    `;
+
+    grid.appendChild(item);
+  });
+}
+
+window.toggleDayLock = async function(dayId, isLocked) {
+  await setDoc(
+    doc(db, "days", dayId),
+    { picksLocked: isLocked },
+    { merge: true }
+  );
+
+  const dayIndex = cachedDays.findIndex(day => day.id === dayId);
+  if (dayIndex !== -1) {
+    cachedDays[dayIndex].picksLocked = isLocked;
+  }
+};
     async function autoEliminateMissingPicks(days, playerDocs) {
       const now = new Date();
 
@@ -1223,23 +1259,20 @@ function renderPickCell(teamName, teamsMap, result = "") {
         return;
       }
 
-      const settingsSnap = await getDoc(doc(db, "settings", "global"));
-      const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+      const dayRef = doc(db, "days", selectedDay);
+const daySnap = await getDoc(dayRef);
 
-      if (settings?.picksLocked) {
-        message.innerText = "Picks are locked.";
-        return;
-      }
+if (!daySnap.exists()) {
+  message.innerText = "That day is not configured.";
+  return;
+}
 
-      if (settings?.lockTime) {
-        const now = new Date();
-        const globalLockTime = settings.lockTime.toDate();
+const dayData = daySnap.data();
 
-        if (now >= globalLockTime) {
-          message.innerText = "Picks are locked.";
-          return;
-        }
-      }
+if (dayData?.picksLocked) {
+  message.innerText = "Picks are locked for that day.";
+  return;
+}
 
       const dayRef = doc(db, "days", selectedDay);
       const daySnap = await getDoc(dayRef);
@@ -1432,6 +1465,13 @@ function renderPickCell(teamName, teamsMap, result = "") {
 
         await refreshAvailableTeams();
         await renderStandings();
+
+        await refreshAvailableTeams();
+await renderStandings();
+
+if (document.getElementById("standingsAdmin").style.display === "block") {
+  renderAdminLockControls();
+}
       });
 
       onSnapshot(collection(db, "teams"), async (snapshot) => {
