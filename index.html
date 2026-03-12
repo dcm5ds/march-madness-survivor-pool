@@ -927,52 +927,77 @@
       });
     }
 
-    window.refreshAvailableTeams = async function() {
-      const select = document.getElementById("teamSelect");
-      const name = document.getElementById("playerName").value.trim();
-      const selectedDay = document.getElementById("daySelect").value;
+window.refreshAvailableTeams = async function() {
+  const select = document.getElementById("teamSelect");
+  const name = document.getElementById("playerName").value.trim();
+  const selectedDay = document.getElementById("daySelect").value;
 
-      select.innerHTML = `<option value="">-- Select a Team --</option>`;
+  select.innerHTML = `<option value="">-- Select a Team --</option>`;
 
-      await loadTeamsMap();
-      const allTeams = await getAllAvailableTeams();
+  await loadTeamsMap();
 
-      if (!name || !selectedDay) {
-        allTeams.forEach(team => {
-          select.innerHTML += `<option value="${team}">${team}</option>`;
-        });
+  if (!selectedDay) {
+    renderTeamPreviewList([]);
+    updateSelectedTeamLogo();
+    return;
+  }
 
-        renderTeamPreviewList(allTeams);
-        updateSelectedTeamLogo();
-        return;
-      }
+  const dayRef = doc(db, "days", selectedDay);
+  const daySnap = await getDoc(dayRef);
 
-      const playerRef = doc(db, "players", name);
-      const playerSnap = await getDoc(playerRef);
+  if (!daySnap.exists()) {
+    renderTeamPreviewList([]);
+    updateSelectedTeamLogo();
+    return;
+  }
 
-      let picks = {};
-      let currentDayPick = "";
+  const dayData = daySnap.data();
+  const teamsPlayingThatDay = Array.isArray(dayData.availableTeams)
+    ? dayData.availableTeams
+    : [];
 
-      if (playerSnap.exists()) {
-        const data = playerSnap.data();
-        picks = data.picks || {};
-        currentDayPick = picks[selectedDay] || "";
-      }
+  const allAvailableTeams = teamsPlayingThatDay.filter(team => {
+    return !cachedTeamsMap[team]?.eliminated;
+  });
 
-      const usedTeamsOnOtherDays = Object.entries(picks)
-        .filter(([dayKey]) => dayKey !== selectedDay)
-        .map(([, pickedTeam]) => pickedTeam);
+  if (!name) {
+    allAvailableTeams.forEach(team => {
+      select.innerHTML += `<option value="${team}">${team}</option>`;
+    });
 
-      const filteredTeams = allTeams.filter(team => !usedTeamsOnOtherDays.includes(team));
+    renderTeamPreviewList(allAvailableTeams);
+    updateSelectedTeamLogo();
+    return;
+  }
 
-      filteredTeams.forEach(team => {
-        const isSelected = team === currentDayPick ? "selected" : "";
-        select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
-      });
+  const playerRef = doc(db, "players", name);
+  const playerSnap = await getDoc(playerRef);
 
-      renderTeamPreviewList(filteredTeams);
-      updateSelectedTeamLogo();
-    };
+  let picks = {};
+  let currentDayPick = "";
+
+  if (playerSnap.exists()) {
+    const data = playerSnap.data();
+    picks = data.picks || {};
+    currentDayPick = picks[selectedDay] || "";
+  }
+
+  const usedTeamsOnOtherDays = Object.entries(picks)
+    .filter(([dayKey]) => dayKey !== selectedDay)
+    .map(([, pickedTeam]) => pickedTeam);
+
+  const filteredTeams = allAvailableTeams.filter(team => {
+    return !usedTeamsOnOtherDays.includes(team);
+  });
+
+  filteredTeams.forEach(team => {
+    const isSelected = team === currentDayPick ? "selected" : "";
+    select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
+  });
+
+  renderTeamPreviewList(filteredTeams);
+  updateSelectedTeamLogo();
+};
 
     async function loadDays() {
       const snapshot = await getDocs(collection(db, "days"));
