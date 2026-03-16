@@ -1,36 +1,1607 @@
-<div id="standings" class="content">
-  <h2>Standings</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NCAA Tournament Survivor 2026</title>
 
-  <div class="stats-bar">
-    <div class="stat-card">
-      <div class="stat-label">💰 Total Pot</div>
-      <div id="potTotal" class="stat-value">$0</div>
-    </div>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
-    <div class="stat-card">
-      <div class="stat-label">Players Remaining</div>
-      <div id="remainingCount" class="stat-value">0</div>
+    :root {
+      --bg-dark: #0f1115;
+      --bg-dark-2: #1a1d24;
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --accent-red: #d61f26;
+      --accent-red-dark: #a9151b;
+      --accent-gold: #f5c451;
+      --text-light: #f5f7fa;
+      --text-dark: #151821;
+      --text-muted: #6b7280;
+      --success-bg: #dff5e3;
+      --success-text: #14532d;
+      --danger-bg: #fde2e1;
+      --danger-text: #991b1b;
+      --pending-bg: #fff3bf;
+      --pending-text: #7c5b00;
+      --info-bg: #dbeafe;
+      --info-text: #1d4ed8;
+      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.20);
+      --shadow-strong: 0 16px 40px rgba(0, 0, 0, 0.35);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      margin: 0;
+      color: var(--text-light);
+      background:
+        radial-gradient(circle at top left, rgba(214, 31, 38, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(245, 196, 81, 0.10), transparent 22%),
+        linear-gradient(180deg, #0b0d11 0%, #161a22 45%, #0f1115 100%);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, #0d0f14 0%, #1a1d24 60%, #232833 100%);
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 2px solid rgba(214, 31, 38, 0.55);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .site-title {
+      font-family: "Oswald", Arial, sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.28);
+    }
+
+    .hamburger {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 10px;
+      transition: 0.2s ease;
+    }
+
+    .hamburger:hover {
+      background: rgba(214, 31, 38, 0.22);
+      border-color: rgba(214, 31, 38, 0.45);
+    }
+
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 280px;
+      height: 100%;
+      background: linear-gradient(180deg, #12151c 0%, #0c0f14 100%);
+      box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
+      z-index: 2000;
+      transition: left 0.25s ease;
+      padding-top: 18px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .side-menu.open {
+      left: 0;
+    }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 8px;
+    }
+
+    .menu-title {
+      font-family: "Oswald", Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: white;
+    }
+
+    .menu-close {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .menu-link {
+      display: block;
+      width: calc(100% - 18px);
+      margin: 6px 9px;
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #f4f4f5;
+      padding: 13px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .menu-link:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .menu-link.active {
+      background: linear-gradient(90deg, rgba(214,31,38,0.95), rgba(169,21,27,0.95));
+      color: white;
+      box-shadow: 0 8px 18px rgba(214, 31, 38, 0.30);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(2px);
+      z-index: 1500;
+      display: none;
+    }
+
+    .menu-overlay.show {
+      display: block;
+    }
+
+    .content {
+      display: none;
+      background: var(--card-bg);
+      color: var(--text-dark);
+      margin: 20px;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-strong);
+      border: 1px solid rgba(255,255,255,0.40);
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    h2 {
+      font-family: "Oswald", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 30px;
+      color: #111827;
+      margin-bottom: 16px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 8px 0 8px 0;
+    }
+
+    .hero-logo {
+      max-width: 240px;
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.25);
+      margin-bottom: 22px;
+      background: white;
+      border: 4px solid white;
+    }
+
+    .hero-title {
+      font-family: "Oswald", Arial, sans-serif;
+      color: #111827;
+      font-size: 42px;
+      line-height: 1.05;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .hero-subtitle {
+      color: #4b5563;
+      font-size: 17px;
+      margin-bottom: 24px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .hero-button,
+    .history-button,
+    button.action-button {
+      padding: 12px 18px;
+      background: linear-gradient(180deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      letter-spacing: 0.2px;
+      box-shadow: 0 10px 18px rgba(214, 31, 38, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .hero-button:hover,
+    .history-button:hover,
+    button.action-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow: 0 14px 22px rgba(214, 31, 38, 0.30);
+    }
+
+    .hero-link-button {
+      background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+      box-shadow: 0 10px 18px rgba(17, 24, 39, 0.22);
+    }
+
+    .home-card,
+    .history-card,
+    .signup-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .home-card a {
+      color: var(--accent-red);
+      font-weight: 700;
+    }
+
+    .home-card a:hover {
+      color: var(--accent-red-dark);
+    }
+
+    .home-card h3,
+    .history-card h3 {
+      margin-bottom: 10px;
+      color: #111827;
+      font-family: "Oswald", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-size: 22px;
+    }
+
+    .home-card p,
+    .home-card li {
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .home-card ul,
+    .home-card ol {
+      margin-top: 8px;
+      padding-left: 22px;
+    }
+
+    .signup-card {
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .signup-card label,
+    .pick-form label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="datetime-local"],
+    select {
+      padding: 12px 14px;
+      margin: 5px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      width: 260px;
+      max-width: 100%;
+      box-sizing: border-box;
+      background: white;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    input[type="datetime-local"]:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(214, 31, 38, 0.65);
+      box-shadow: 0 0 0 4px rgba(214, 31, 38, 0.12);
+    }
+
+    .signup-card input[type="text"],
+    .signup-card input[type="email"],
+    .signup-card input[type="tel"] {
+      width: 100%;
+    }
+
+    .pick-form input[type="text"],
+    .pick-form input[type="email"],
+    .pick-form select {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .success-message,
+    #message {
+      margin-top: 14px;
+      font-weight: 700;
+      color: #166534;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 220px;
+      background: linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid #e5e7eb;
+    }
+
+    .stat-label {
+      font-family: "Oswald", Arial, sans-serif;
+      text-transform: uppercase;
+      font-size: 14px;
+      letter-spacing: .5px;
+      color: #6b7280;
+    }
+
+    .stat-value {
+      font-family: "Oswald", Arial, sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #111827;
+      margin-top: 4px;
+    }
+
+    .scoreboard-panel {
+      background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: var(--shadow-strong);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .scoreboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 6px 4px 10px 4px;
+      border-bottom: 2px solid rgba(214, 31, 38, 0.6);
+    }
+
+    .scoreboard-title {
+      font-family: "Oswald", Arial, sans-serif;
+      color: white;
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 0;
+    }
+
+    .scoreboard-subtitle {
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px #e5e7eb;
+      background: white;
+    }
+
+    table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: white;
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+      min-width: 120px;
+      vertical-align: middle;
+    }
+
+    td:first-child,
+    th:first-child {
+      position: sticky;
+      left: 0;
+      background: white;
+      z-index: 2;
+      text-align: left;
+      font-weight: 700;
+      min-width: 180px;
+    }
+
+    tbody td:first-child {
+      font-family: "Oswald", Arial, sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+      color: #111827;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    thead tr:first-child th {
+      background: linear-gradient(90deg, #111827 0%, #1f2937 100%);
+      color: white;
+      font-weight: 700;
+      font-family: "Oswald", Arial, sans-serif;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    thead tr:nth-child(2) th {
+      background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
+      color: white;
+      font-weight: 700;
+      font-family: "Oswald", Arial, sans-serif;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    thead th:first-child {
+      z-index: 3;
+    }
+
+    tbody tr:nth-child(even) td {
+      background-color: #fafafa;
+    }
+
+    tbody tr:hover td {
+      background-color: #f3f4f6;
+    }
+
+    .winCell,
+    .lossCell,
+    .pickSubmittedCell,
+    .noPickCell,
+    .eliminatedCell {
+      border-width: 1px;
+      font-weight: 700;
+    }
+
+    .winCell {
+      background: linear-gradient(180deg, #e7f8ea 0%, #bbf7d0 100%) !important;
+      color: #14532d;
+      font-weight: 700;
+    }
+
+    .lossCell {
+      background: linear-gradient(180deg, #feeceb 0%, #fecaca 100%) !important;
+      color: #991b1b;
+      font-weight: 700;
+    }
+
+    .eliminatedCell {
+      background: linear-gradient(180deg, #111111 0%, #000000 100%) !important;
+      color: white !important;
+    }
+
+    .result-icon {
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      min-width: 14px;
+    }
+
+    .win-icon {
+      color: #14532d;
+    }
+
+    .loss-icon {
+      color: #991b1b;
+    }
+
+    .pickSubmittedCell {
+      background: linear-gradient(180deg, #fff7cc 0%, #fde68a 100%) !important;
+      color: #7c5b00;
+      font-weight: 700;
+    }
+
+    .noPickCell {
+      background: linear-gradient(180deg, #e0efff 0%, #bfdbfe 100%) !important;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .pick-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+
+    .pick-logo {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .team-select-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .selected-team-logo-wrap {
+      width: 46px;
+      height: 46px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
+    }
+
+    .selected-team-logo {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .team-preview-list {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      max-width: 760px;
+    }
+
+    .team-preview-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 8px 10px;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .team-preview-item img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .history-card {
+      text-align: center;
+    }
+
+    .history-card p {
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .sheet-frame-wrap {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid #d1d5db;
+      border-radius: 16px;
+      background: white;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .sheet-frame {
+      width: 100%;
+      height: 900px;
+      border: none;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        margin: 10px;
+        padding: 16px;
+        border-radius: 14px;
+      }
+
+      th,
+      td {
+        min-width: 100px;
+        font-size: 12px;
+        padding: 6px 8px;
+      }
+
+      td:first-child,
+      th:first-child {
+        min-width: 140px;
+      }
+
+      .pick-logo {
+        width: 16px;
+        height: 16px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="datetime-local"],
+      select {
+        width: 100%;
+      }
+
+      .team-preview-list {
+        grid-template-columns: 1fr;
+      }
+
+      .site-title {
+        font-size: 20px;
+      }
+
+      .hero-title {
+        font-size: 30px;
+      }
+
+      .hero-logo {
+        max-width: 180px;
+      }
+
+      .sheet-frame {
+        height: 700px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+      }
+
+      .scoreboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" type="button" onclick="openMenu()">☰</button>
+      <div class="site-title">NCAA Tournament Survivor 2026</div>
     </div>
   </div>
 
-  <div class="scoreboard-panel">
-    <div class="scoreboard-header">
-      <h3 class="scoreboard-title">Tournament Tracker</h3>
-      <p class="scoreboard-subtitle">Daily picks, results, and eliminations</p>
+  <div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+
+  <nav id="sideMenu" class="side-menu">
+    <div class="menu-header">
+      <div class="menu-title">Menu</div>
+      <button class="menu-close" type="button" onclick="closeMenu()">×</button>
     </div>
 
-    <div class="table-wrapper">
-      <table id="standingsTable">
-        <thead>
-          <tr>
-            <th></th>
-          </tr>
-          <tr>
-            <th>Name</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <button class="menu-link active" id="menu-home" type="button" onclick="switchPage('home')">Home</button>
+    <button class="menu-link" id="menu-signup" type="button" onclick="switchPage('signup')">Sign Up</button>
+    <button class="menu-link" id="menu-standings" type="button" onclick="switchPage('standings')">Standings</button>
+    <button class="menu-link" id="menu-history" type="button" onclick="switchPage('history')">Pool History</button>
+    <button class="menu-link" id="menu-pick" type="button" onclick="switchPage('pick')">Make a Pick</button>
+  </nav>
+
+  <div id="home" class="content active">
+    <div class="hero">
+      <img class="hero-logo" src="NCAA Tourney 2026.jpg" alt="NCAA Tournament Survivor 2026 logo" />
+
+      <h1 class="hero-title">NCAA Tournament Survivor 2026</h1>
+      <p class="hero-subtitle">
+        Welcome to the pool. Review the rules, sign up, check the standings, and submit your picks.
+      </p>
+
+      <div class="hero-buttons">
+        <button class="hero-button" type="button" onclick="switchPage('signup')">Sign Up</button>
+        <a class="hero-button hero-link-button" href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">
+          Pay Entry Fee
+        </a>
+        <button class="hero-button" type="button" onclick="switchPage('standings')">View Standings</button>
+        <button class="hero-button" type="button" onclick="switchPage('pick')">Make a Pick</button>
+      </div>
+    </div>
+
+    <div class="home-card">
+      <h3>Overview</h3>
+      <p>
+        For those that haven’t played before, the idea is to pick one team each day to advance in the tournament. If they win you move on, if they lose you’re out - no buying back in.
+        Once you’ve picked a team, you cannot pick them again. If you run out of teams to pick, you are considered out if there are still others alive.
+        Winner takes all if there is no tie. In the event of a tie, the pot will be split up by adding up the seeds of the correct picks.
+      </p>
+    </div>
+
+    <div class="home-card">
+      <h3>How to Play</h3>
+      <ul>
+        <li>Sign Up using the link above, using your full name, email address, and phone number.</li>
+        <li>
+          Entry fee is $5, which is due by 3/20 at noon.
+          My Venmo is
+          <a href="https://venmo.com/u/David-McQuillen" target="_blank" rel="noopener noreferrer">@David-McQuillen</a>.
+          If you don't have Venmo, shoot me a text.
+        </li>
+        <li>Make your picks using the link above. When submitting, your full name and email address must match the info you entered when signing up.</li>
+        <li>You may change your pick as many times as you want up until the tipoff of the first game that day.</li>
+        <li>Once a pick has been made, you will see "Pick Submitted" next to your name in the Standings. After the cutoff time for each day, the final picks for the entire pool will be revealed.</li>
+        <li>If you do not submit a pick before the lock time, you are eliminated.</li>
+        <li>Follow the pool results at the "Standings" link above.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>Website Pages</h3>
+      <ul>
+        <li><strong>Home:</strong> Pool rules and instructions.</li>
+        <li><strong>Sign Up:</strong> Join the pool.</li>
+        <li><strong>Standings:</strong> View all players and their progress by day.</li>
+        <li><strong>Pool History:</strong> View results from prior years.</li>
+        <li><strong>Make a Pick:</strong> Submit or change your pick before the lock time.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>Standings Display</h3>
+      <ul>
+        <li>Before a day's reveal time, standings show <strong>Pick Submitted</strong> or <strong>No Pick</strong>.</li>
+        <li>After the reveal time, the actual team picked will appear.</li>
+        <li>Winning picks are shown in <strong>green</strong>.</li>
+        <li>Losing picks are shown in <strong>red</strong>.</li>
+        <li>Once a player is eliminated, later days are blacked out.</li>
+      </ul>
+    </div>
+
+    <div class="home-card">
+      <h3>Good Luck! My phone number is (703) 424-3097 if you need anything.</h3>
     </div>
   </div>
-</div>
+
+  <div id="signup" class="content">
+    <h2>Sign Up for the Pool</h2>
+
+    <div class="signup-card">
+      <label for="signupName">Name:</label>
+      <input type="text" id="signupName" placeholder="Enter your full name" />
+
+      <label for="signupEmail">Email:</label>
+      <input type="email" id="signupEmail" placeholder="Enter your email" />
+
+      <label for="signupPhone">Phone Number:</label>
+      <input type="tel" id="signupPhone" placeholder="Enter your phone number" />
+
+      <button class="action-button" type="button" onclick="submitSignup()">Submit</button>
+
+      <p id="signupMessage" class="success-message"></p>
+    </div>
+  </div>
+
+  <div id="standings" class="content">
+    <h2>Standings</h2>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">💰 Total Pot</div>
+        <div id="potTotal" class="stat-value">$0</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Players Remaining</div>
+        <div id="remainingCount" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <div class="scoreboard-panel">
+      <div class="scoreboard-header">
+        <h3 class="scoreboard-title">Tournament Tracker</h3>
+        <p class="scoreboard-subtitle">Daily picks, results, and eliminations</p>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="standingsTable">
+          <thead>
+            <tr>
+              <th></th>
+            </tr>
+            <tr>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="history" class="content">
+    <h2>Pool History</h2>
+    <p>View past Survivor Pool results by year.</p>
+
+    <div class="history-grid">
+      <div class="history-card">
+        <h3>2021</h3>
+        <p>Results and standings from the 2021 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2021')">View 2021</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2022</h3>
+        <p>Results and standings from the 2022 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2022')">View 2022</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2023</h3>
+        <p>Results and standings from the 2023 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2023')">View 2023</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2024</h3>
+        <p>Results and standings from the 2024 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2024')">View 2024</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2025</h3>
+        <p>Results and standings from the 2025 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2025')">View 2025</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="history-2021" class="content">
+    <h2>Pool History - 2021</h2>
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+    <div class="sheet-frame-wrap">
+      <iframe class="sheet-frame" src="https://docs.google.com/spreadsheets/d/1yCbJDBx9vEoBSwQQKVIqK8v6nLLX8eke0FpQed9ymGY/preview?gid=2027525981" title="2021 Pool History"></iframe>
+    </div>
+  </div>
+
+  <div id="history-2022" class="content">
+    <h2>Pool History - 2022</h2>
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+    <div class="sheet-frame-wrap">
+      <iframe class="sheet-frame" src="https://docs.google.com/spreadsheets/d/1Bz_r2SVC6ugyRJsPZTbMhKihesdOpiSuxsRoEyQ6yU4/preview?gid=2027525981" title="2022 Pool History"></iframe>
+    </div>
+  </div>
+
+  <div id="history-2023" class="content">
+    <h2>Pool History - 2023</h2>
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+    <div class="sheet-frame-wrap">
+      <iframe class="sheet-frame" src="https://docs.google.com/spreadsheets/d/1gc-4ggBE3qvvjEP1d_CK_QyQeIqqSqYi9NpHo1MoBWs/preview?gid=2089089985" title="2023 Pool History"></iframe>
+    </div>
+  </div>
+
+  <div id="history-2024" class="content">
+    <h2>Pool History - 2024</h2>
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+    <div class="sheet-frame-wrap">
+      <iframe class="sheet-frame" src="https://docs.google.com/spreadsheets/d/1833_25zTn3A-wpU7-qK_xOKFQcJiMws1dDFx9PdtlMY/preview?gid=2089089985" title="2024 Pool History"></iframe>
+    </div>
+  </div>
+
+  <div id="history-2025" class="content">
+    <h2>Pool History - 2025</h2>
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+    <div class="sheet-frame-wrap">
+      <iframe class="sheet-frame" src="https://docs.google.com/spreadsheets/d/14Xt6oR9zKuM1TEn6yub0FimgaCJOB9Lnkxdbg_5sy-k/preview?gid=2089089985" title="2025 Pool History"></iframe>
+    </div>
+  </div>
+
+  <div id="pick" class="content">
+    <h2>Submit Your Pick</h2>
+
+    <div class="pick-form">
+      <label for="playerName"><strong>Name:</strong></label><br />
+      <input type="text" id="playerName" placeholder="Your Name" oninput="refreshAvailableTeams()" />
+      <br /><br />
+
+      <label for="playerEmail"><strong>Email:</strong></label><br />
+      <input type="email" id="playerEmail" placeholder="Your Email" />
+      <br /><br />
+
+      <label for="daySelect"><strong>Select Day:</strong></label><br />
+      <select id="daySelect" onchange="refreshAvailableTeams()"></select>
+      <br /><br />
+
+      <label for="teamSelect"><strong>Select Team:</strong></label><br />
+      <div class="team-select-row">
+        <select id="teamSelect" onchange="updateSelectedTeamLogo()"></select>
+        <div id="selectedTeamLogoWrap" class="selected-team-logo-wrap">
+          <img id="selectedTeamLogo" class="selected-team-logo" src="" alt="" style="display:none;" />
+        </div>
+      </div>
+
+      <div id="teamPreviewList" class="team-preview-list"></div>
+      <br />
+
+      <button class="action-button" type="button" onclick="submitPick()">Submit Pick</button>
+
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      getDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
+      authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
+      projectId: "ncaa-tournament-survivor-pool",
+      storageBucket: "ncaa-tournament-survivor-pool.firebasestorage.app",
+      messagingSenderId: "870538967309",
+      appId: "1:870538967309:web:89d2c0f88ea239eec19844"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let cachedTeamsMap = {};
+    let cachedDays = [];
+    let cachedPlayers = [];
+
+    window.openMenu = function() {
+      document.getElementById("sideMenu").classList.add("open");
+      document.getElementById("menuOverlay").classList.add("show");
+    };
+
+    window.closeMenu = function() {
+      document.getElementById("sideMenu").classList.remove("open");
+      document.getElementById("menuOverlay").classList.remove("show");
+    };
+
+    window.switchPage = function(page) {
+      document.querySelectorAll(".content").forEach(section => {
+        section.classList.remove("active");
+      });
+
+      document.querySelectorAll(".menu-link").forEach(link => {
+        link.classList.remove("active");
+      });
+
+      document.getElementById(page).classList.add("active");
+
+      const historyPages = ["history", "history-2021", "history-2022", "history-2023", "history-2024", "history-2025"];
+
+      if (historyPages.includes(page)) {
+        const historyMenu = document.getElementById("menu-history");
+        if (historyMenu) historyMenu.classList.add("active");
+      } else {
+        const menuButton = document.getElementById("menu-" + page);
+        if (menuButton) menuButton.classList.add("active");
+      }
+
+      closeMenu();
+    };
+
+    function renderPickCell(teamName, teamsMap, result = "") {
+      const logo = teamsMap[teamName]?.logo;
+
+      let iconHtml = "";
+      if (result === "win") {
+        iconHtml = `<span class="result-icon win-icon">✓</span>`;
+      } else if (result === "loss") {
+        iconHtml = `<span class="result-icon loss-icon">✗</span>`;
+      }
+
+      if (logo) {
+        return `
+          <div class="pick-cell">
+            ${iconHtml}
+            <img src="${logo}" alt="${teamName}" class="pick-logo">
+            <span>${teamName}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="pick-cell">
+          ${iconHtml}
+          <span>${teamName}</span>
+        </div>
+      `;
+    }
+
+    function isDayLocked(day) {
+      if (!day) return false;
+      if (day.picksLocked) return true;
+      if (!day.lockTime) return false;
+
+      const now = new Date();
+      const lockTime =
+        typeof day.lockTime.toDate === "function"
+          ? day.lockTime.toDate()
+          : new Date(day.lockTime);
+
+      return now >= lockTime;
+    }
+
+    function isDayRevealed(day) {
+      return isDayLocked(day);
+    }
+
+    function formatCutoff(day) {
+      if (!day?.lockTime) return day.cutoff || "";
+
+      try {
+        const dt =
+          typeof day.lockTime.toDate === "function"
+            ? day.lockTime.toDate()
+            : new Date(day.lockTime);
+
+        return dt.toLocaleString();
+      } catch {
+        return day.cutoff || "";
+      }
+    }
+
+    async function loadTeamsMap() {
+      const snapshot = await getDocs(collection(db, "teams"));
+      const map = {};
+
+      snapshot.forEach(docSnap => {
+        map[docSnap.id] = docSnap.data();
+      });
+
+      cachedTeamsMap = map;
+      return map;
+    }
+
+    window.updateSelectedTeamLogo = function() {
+      const selectedTeam = document.getElementById("teamSelect").value;
+      const img = document.getElementById("selectedTeamLogo");
+
+      if (!selectedTeam || !cachedTeamsMap[selectedTeam]?.logo) {
+        img.style.display = "none";
+        img.src = "";
+        img.alt = "";
+        return;
+      }
+
+      img.src = cachedTeamsMap[selectedTeam].logo;
+      img.alt = selectedTeam;
+      img.style.display = "block";
+    };
+
+    function renderTeamPreviewList(teamNames) {
+      const teamPreviewList = document.getElementById("teamPreviewList");
+      teamPreviewList.innerHTML = "";
+
+      teamNames.forEach(team => {
+        const logo = cachedTeamsMap[team]?.logo || "";
+        const item = document.createElement("div");
+        item.className = "team-preview-item";
+
+        item.innerHTML = logo
+          ? `<img src="${logo}" alt="${team}"><span>${team}</span>`
+          : `<span>${team}</span>`;
+
+        teamPreviewList.appendChild(item);
+      });
+    }
+
+    window.refreshAvailableTeams = async function() {
+      const select = document.getElementById("teamSelect");
+      const daySelect = document.getElementById("daySelect");
+      const name = document.getElementById("playerName").value.trim();
+      const selectedDay = daySelect.value;
+
+      select.innerHTML = `<option value="">-- Select a Team --</option>`;
+
+      await loadTeamsMap();
+
+      if (!selectedDay) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
+
+      const dayRef = doc(db, "days", selectedDay);
+      const daySnap = await getDoc(dayRef);
+
+      if (!daySnap.exists()) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
+
+      const dayData = daySnap.data();
+
+      if (isDayLocked(dayData)) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
+
+      const teamsPlayingThatDay = Array.isArray(dayData.availableTeams)
+        ? dayData.availableTeams
+        : [];
+
+      const allAvailableTeams = teamsPlayingThatDay.filter(team => {
+        return !cachedTeamsMap[team]?.eliminated;
+      });
+
+      if (!name) {
+        allAvailableTeams.forEach(team => {
+          select.innerHTML += `<option value="${team}">${team}</option>`;
+        });
+
+        renderTeamPreviewList(allAvailableTeams);
+        updateSelectedTeamLogo();
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      let picks = {};
+      let currentDayPick = "";
+
+      if (playerSnap.exists()) {
+        const data = playerSnap.data();
+        picks = data.picks || {};
+        currentDayPick = picks[selectedDay] || "";
+      }
+
+      const usedTeamsOnOtherDays = Object.entries(picks)
+        .filter(([dayKey]) => dayKey !== selectedDay)
+        .map(([, pickedTeam]) => pickedTeam);
+
+      const filteredTeams = allAvailableTeams.filter(team => {
+        return !usedTeamsOnOtherDays.includes(team);
+      });
+
+      filteredTeams.forEach(team => {
+        const isSelected = team === currentDayPick ? "selected" : "";
+        select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
+      });
+
+      renderTeamPreviewList(filteredTeams);
+      updateSelectedTeamLogo();
+    };
+
+    async function loadDays() {
+      const snapshot = await getDocs(collection(db, "days"));
+      const select = document.getElementById("daySelect");
+      const currentValue = select.value;
+      select.innerHTML = `<option value="">-- Select a Day --</option>`;
+
+      let days = [];
+
+      snapshot.forEach(docSnap => {
+        days.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
+
+      days.sort((a, b) => a.order - b.order);
+      cachedDays = days;
+
+      days.forEach(day => {
+        const locked = isDayLocked(day);
+        select.innerHTML += `
+          <option value="${day.id}" ${locked ? "disabled" : ""}>
+            ${day.label || day.id}${locked ? " (Locked)" : ""}
+          </option>
+        `;
+      });
+
+      if (days.some(day => day.id === currentValue && !isDayLocked(day))) {
+        select.value = currentValue;
+      }
+
+      refreshAvailableTeams();
+    }
+
+    async function renderStandings() {
+      const tbody = document.querySelector("#standingsTable tbody");
+      const thead = document.querySelector("#standingsTable thead");
+
+      const days = [...cachedDays].sort((a, b) => a.order - b.order);
+      const playerDocs = cachedPlayers;
+
+      const totalPlayers = playerDocs.length;
+      const totalPot = totalPlayers * 5;
+
+      document.getElementById("potTotal").innerText = "$" + totalPot;
+
+      if (!days.length) {
+        thead.innerHTML = `
+          <tr><th></th></tr>
+          <tr><th>Name</th></tr>
+        `;
+        tbody.innerHTML = "";
+        document.getElementById("remainingCount").innerText = "0";
+        return;
+      }
+
+      thead.innerHTML = `
+        <tr>
+          <th></th>
+          ${days.map(day => `<th>${formatCutoff(day)}</th>`).join("")}
+        </tr>
+        <tr>
+          <th>Name</th>
+          ${days.map(day => `<th>${day.label || day.id}</th>`).join("")}
+        </tr>
+      `;
+
+      tbody.innerHTML = "";
+
+      let aliveCount = 0;
+
+      playerDocs.forEach(playerDoc => {
+        const data = playerDoc.data();
+        const picks = data.picks || {};
+        const playerStatus = data.status || "alive";
+
+        if (playerStatus === "alive") aliveCount++;
+
+        let eliminatedReached = playerStatus === "eliminated";
+        let row = `<tr>`;
+        row += `<td>${data.name || playerDoc.id}</td>`;
+
+        for (const day of days) {
+          const pick = picks[day.id] || "";
+          const winningTeams = day.winningTeams || [];
+          const losingTeams = day.losingTeams || [];
+          const revealed = isDayRevealed(day);
+
+          let cellClass = "";
+          let cellContent = "";
+
+          if (eliminatedReached) {
+            cellClass = "eliminatedCell";
+            cellContent = "Eliminated";
+          } else if (!revealed) {
+            if (pick) {
+              cellClass = "pickSubmittedCell";
+              cellContent = "Pick Submitted";
+            } else {
+              cellClass = "noPickCell";
+              cellContent = "No Pick";
+            }
+          } else if (!pick) {
+            cellClass = "lossCell";
+            cellContent = "No Pick";
+            eliminatedReached = true;
+          } else if (losingTeams.includes(pick)) {
+            cellClass = "lossCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap, "loss");
+            eliminatedReached = true;
+          } else if (winningTeams.includes(pick)) {
+            cellClass = "winCell";
+            cellContent = renderPickCell(pick, cachedTeamsMap, "win");
+          } else {
+            cellContent = renderPickCell(pick, cachedTeamsMap);
+          }
+
+          row += `<td class="${cellClass}">${cellContent}</td>`;
+        }
+
+        row += `</tr>`;
+        tbody.innerHTML += row;
+      });
+
+      document.getElementById("remainingCount").innerText = aliveCount;
+    }
+
+    window.submitSignup = async function() {
+      const name = document.getElementById("signupName").value.trim();
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+      const phone = document.getElementById("signupPhone").value.trim();
+      const signupMessage = document.getElementById("signupMessage");
+
+      signupMessage.innerText = "";
+
+      if (!name) {
+        signupMessage.innerText = "Please enter your name.";
+        return;
+      }
+
+      if (!email) {
+        signupMessage.innerText = "Please enter your email.";
+        return;
+      }
+
+      if (!phone) {
+        signupMessage.innerText = "Please enter your phone number.";
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      let existingData = {};
+      if (playerSnap.exists()) {
+        existingData = playerSnap.data();
+      }
+
+      await setDoc(
+        playerRef,
+        {
+          name: name,
+          email: email,
+          phone: phone,
+          status: existingData.status || "alive",
+          picks: existingData.picks || {}
+        },
+        { merge: true }
+      );
+
+      signupMessage.innerText = "Entry received - welcome to Survivor. Good Luck!";
+
+      document.getElementById("signupName").value = "";
+      document.getElementById("signupEmail").value = "";
+      document.getElementById("signupPhone").value = "";
+    };
+
+    window.submitPick = async function() {
+      const name = document.getElementById("playerName").value.trim();
+      const email = document.getElementById("playerEmail").value.trim().toLowerCase();
+      const selectedDay = document.getElementById("daySelect").value;
+      const team = document.getElementById("teamSelect").value;
+      const message = document.getElementById("message");
+
+      message.innerText = "";
+
+      if (!name) {
+        message.innerText = "Enter your name.";
+        return;
+      }
+
+      if (!email) {
+        message.innerText = "Enter your email.";
+        return;
+      }
+
+      if (!selectedDay) {
+        message.innerText = "Select a day.";
+        return;
+      }
+
+      if (!team) {
+        message.innerText = "Select a team.";
+        return;
+      }
+
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
+
+      if (!playerSnap.exists()) {
+        message.innerText = "Player not found. Please sign up first.";
+        return;
+      }
+
+      const playerData = playerSnap.data();
+      const storedEmail = (playerData.email || "").trim().toLowerCase();
+
+      if (!storedEmail || storedEmail !== email) {
+        message.innerText = "Name and email do not match our records.";
+        return;
+      }
+
+      const dayRef = doc(db, "days", selectedDay);
+      const daySnap = await getDoc(dayRef);
+
+      if (!daySnap.exists()) {
+        message.innerText = "That day is not configured.";
+        return;
+      }
+
+      const dayData = daySnap.data();
+
+      if (isDayLocked(dayData)) {
+        message.innerText = "Picks are locked for that day.";
+        return;
+      }
+
+      let picks = playerData.picks || {};
+      const status = playerData.status || "alive";
+
+      if (status === "eliminated") {
+        message.innerText = "You have been eliminated.";
+        return;
+      }
+
+      const usedTeamsOnOtherDays = Object.entries(picks)
+        .filter(([dayKey]) => dayKey !== selectedDay)
+        .map(([, pickedTeam]) => pickedTeam);
+
+      if (usedTeamsOnOtherDays.includes(team)) {
+        message.innerText = "You already used that team on a prior day.";
+        return;
+      }
+
+      picks[selectedDay] = team;
+
+      await setDoc(
+        playerRef,
+        {
+          name: name,
+          email: storedEmail,
+          phone: playerData.phone || "",
+          status: status,
+          picks: picks
+        },
+        { merge: true }
+      );
+
+      message.innerText = "Pick Submitted - Good Luck!";
+      refreshAvailableTeams();
+    };
+
+    function subscribeToData() {
+      onSnapshot(collection(db, "players"), async (snapshot) => {
+        cachedPlayers = snapshot.docs;
+        await renderStandings();
+      });
+
+      onSnapshot(collection(db, "days"), async (snapshot) => {
+        let days = [];
+
+        snapshot.forEach(docSnap => {
+          days.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        days.sort((a, b) => a.order - b.order);
+        cachedDays = days;
+
+        const select = document.getElementById("daySelect");
+        const currentValue = select.value;
+
+        select.innerHTML = `<option value="">-- Select a Day --</option>`;
+        days.forEach(day => {
+          const locked = isDayLocked(day);
+          select.innerHTML += `
+            <option value="${day.id}" ${locked ? "disabled" : ""}>
+              ${day.label || day.id}${locked ? " (Locked)" : ""}
+            </option>
+          `;
+        });
+
+        if (days.some(day => day.id === currentValue && !isDayLocked(day))) {
+          select.value = currentValue;
+        }
+
+        await refreshAvailableTeams();
+        await renderStandings();
+      });
+
+      onSnapshot(collection(db, "teams"), async (snapshot) => {
+        const map = {};
+
+        snapshot.forEach(docSnap => {
+          map[docSnap.id] = docSnap.data();
+        });
+
+        cachedTeamsMap = map;
+        await refreshAvailableTeams();
+        await renderStandings();
+      });
+    }
+
+    loadDays();
+    loadTeamsMap();
+    subscribeToData();
+    refreshAvailableTeams();
+
+    setInterval(async () => {
+      await renderStandings();
+    }, 30000);
+  </script>
+</body>
+</html>
