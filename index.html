@@ -6,246 +6,628 @@
   <title>NCAA Tournament Survivor 2026</title>
 
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      background: linear-gradient(to bottom, #0b3d0b, #1f7a1f);
-      color: white;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #0b3d0b;
-      padding: 12px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    }
+  :root {
+    --bg-dark: #0f1115;
+    --bg-dark-2: #1a1d24;
+    --card-bg: rgba(255, 255, 255, 0.96);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --accent-red: #d61f26;
+    --accent-red-dark: #a9151b;
+    --accent-gold: #f5c451;
+    --text-light: #f5f7fa;
+    --text-dark: #151821;
+    --text-muted: #6b7280;
+    --success-bg: #dff5e3;
+    --success-text: #14532d;
+    --danger-bg: #fde2e1;
+    --danger-text: #991b1b;
+    --pending-bg: #fff3bf;
+    --pending-text: #7c5b00;
+    --info-bg: #dbeafe;
+    --info-text: #1d4ed8;
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.20);
+    --shadow-strong: 0 16px 40px rgba(0, 0, 0, 0.35);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
 
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+  * {
+    box-sizing: border-box;
+  }
 
-    .site-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: white;
-    }
+  body {
+    font-family: "Inter", Arial, sans-serif;
+    margin: 0;
+    color: var(--text-light);
+    background:
+      radial-gradient(circle at top left, rgba(214, 31, 38, 0.16), transparent 28%),
+      radial-gradient(circle at top right, rgba(245, 196, 81, 0.10), transparent 22%),
+      linear-gradient(180deg, #0b0d11 0%, #161a22 45%, #0f1115 100%);
+    min-height: 100vh;
+  }
 
-    .hamburger {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 26px;
-      cursor: pointer;
-      padding: 4px 8px;
-    }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #0d0f14 0%, #1a1d24 60%, #232833 100%);
+    padding: 14px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid rgba(214, 31, 38, 0.55);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
 
-    .side-menu {
-      position: fixed;
-      top: 0;
-      left: -280px;
-      width: 260px;
-      height: 100%;
-      background: #123d12;
-      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
-      z-index: 2000;
-      transition: left 0.25s ease;
-      padding-top: 18px;
-    }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
 
-    .side-menu.open {
-      left: 0;
-    }
+  .site-title {
+    font-family: "Oswald", Arial, sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.28);
+  }
 
-    .menu-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 16px 16px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
-      margin-bottom: 8px;
-    }
+  .hamburger {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 10px;
+    transition: 0.2s ease;
+  }
 
-    .menu-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: white;
-    }
+  .hamburger:hover {
+    background: rgba(214, 31, 38, 0.22);
+    border-color: rgba(214, 31, 38, 0.45);
+  }
 
-    .menu-close {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-    }
+  .side-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 280px;
+    height: 100%;
+    background: linear-gradient(180deg, #12151c 0%, #0c0f14 100%);
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    transition: left 0.25s ease;
+    padding-top: 18px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
 
-    .menu-link {
-      display: block;
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      border: none;
-      color: white;
-      padding: 14px 18px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+  .side-menu.open {
+    left: 0;
+  }
 
-    .menu-link:hover,
-    .menu-link.active {
-      background: #2e8b2e;
-    }
+  .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px 16px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 8px;
+  }
 
-    .menu-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 1500;
-      display: none;
-    }
+  .menu-title {
+    font-family: "Oswald", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: white;
+  }
 
-    .menu-overlay.show {
-      display: block;
-    }
+  .menu-close {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
 
+  .menu-link {
+    display: block;
+    width: calc(100% - 18px);
+    margin: 6px 9px;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #f4f4f5;
+    padding: 13px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .menu-link:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  .menu-link.active {
+    background: linear-gradient(90deg, rgba(214,31,38,0.95), rgba(169,21,27,0.95));
+    color: white;
+    box-shadow: 0 8px 18px rgba(214, 31, 38, 0.30);
+  }
+
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(2px);
+    z-index: 1500;
+    display: none;
+  }
+
+  .menu-overlay.show {
+    display: block;
+  }
+
+  .content {
+    display: none;
+    background: var(--card-bg);
+    color: var(--text-dark);
+    margin: 20px;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-strong);
+    border: 1px solid rgba(255,255,255,0.40);
+  }
+
+  .content.active {
+    display: block;
+  }
+
+  h1, h2, h3 {
+    margin-top: 0;
+  }
+
+  h2 {
+    font-family: "Oswald", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 30px;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 8px 0 8px 0;
+  }
+
+  .hero-logo {
+    max-width: 240px;
+    width: 100%;
+    height: auto;
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.25);
+    margin-bottom: 22px;
+    background: white;
+    border: 4px solid white;
+  }
+
+  .hero-title {
+    font-family: "Oswald", Arial, sans-serif;
+    color: #111827;
+    font-size: 42px;
+    line-height: 1.05;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .hero-subtitle {
+    color: #4b5563;
+    font-size: 17px;
+    margin-bottom: 24px;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .hero-button,
+  .history-button,
+  button.action-button {
+    padding: 12px 18px;
+    background: linear-gradient(180deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    letter-spacing: 0.2px;
+    box-shadow: 0 10px 18px rgba(214, 31, 38, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+
+  .hero-button:hover,
+  .history-button:hover,
+  button.action-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+    box-shadow: 0 14px 22px rgba(214, 31, 38, 0.30);
+  }
+
+  .hero-link-button {
+    background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+    box-shadow: 0 10px 18px rgba(17, 24, 39, 0.22);
+  }
+
+  .home-card,
+  .history-card,
+  .signup-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .home-card a {
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+
+  .home-card a:hover {
+    color: var(--accent-red-dark);
+  }
+
+  .home-card h3,
+  .history-card h3 {
+    margin-bottom: 10px;
+    color: #111827;
+    font-family: "Oswald", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-size: 22px;
+  }
+
+  .home-card p,
+  .home-card li {
+    line-height: 1.6;
+    color: #374151;
+  }
+
+  .home-card ul,
+  .home-card ol {
+    margin-top: 8px;
+    padding-left: 22px;
+  }
+
+  .signup-card {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .signup-card label,
+  .pick-form label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  input,
+  select,
+  button {
+    font: inherit;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="datetime-local"],
+  select {
+    padding: 12px 14px;
+    margin: 5px 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    width: 260px;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: white;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  input[type="datetime-local"]:focus,
+  select:focus {
+    outline: none;
+    border-color: rgba(214, 31, 38, 0.65);
+    box-shadow: 0 0 0 4px rgba(214, 31, 38, 0.12);
+  }
+
+  .signup-card input[type="text"],
+  .signup-card input[type="email"],
+  .signup-card input[type="tel"] {
+    width: 100%;
+  }
+
+  .pick-form input[type="text"],
+  .pick-form input[type="email"],
+  .pick-form select {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .success-message,
+  #message {
+    margin-top: 14px;
+    font-weight: 700;
+    color: #166534;
+  }
+
+  #potTotal,
+  #remainingCount {
+    font-family: "Oswald", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 22px;
+    margin-bottom: 8px;
+    color: #111827;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px #e5e7eb;
+    background: white;
+  }
+
+  table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+  }
+
+  th,
+  td {
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    min-width: 120px;
+    vertical-align: middle;
+  }
+
+  td:first-child,
+  th:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 2;
+    text-align: left;
+    font-weight: 700;
+    min-width: 180px;
+  }
+
+  thead tr:first-child th {
+    background: linear-gradient(90deg, #111827 0%, #1f2937 100%);
+    color: white;
+    font-weight: 700;
+    font-family: "Oswald", Arial, sans-serif;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  thead tr:nth-child(2) th {
+    background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
+    color: white;
+    font-weight: 700;
+    font-family: "Oswald", Arial, sans-serif;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  thead th:first-child {
+    z-index: 3;
+  }
+
+  .winCell {
+    background: var(--success-bg);
+    color: var(--success-text);
+    font-weight: 700;
+  }
+
+  .lossCell {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    font-weight: 700;
+  }
+
+  .eliminatedCell {
+    background: #111111 !important;
+    color: white !important;
+  }
+
+  .result-icon {
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-block;
+    min-width: 14px;
+  }
+
+  .win-icon {
+    color: var(--success-text);
+  }
+
+  .loss-icon {
+    color: var(--danger-text);
+  }
+
+  .pickSubmittedCell {
+    background: var(--pending-bg);
+    color: var(--pending-text);
+    font-weight: 700;
+  }
+
+  .noPickCell {
+    background: var(--info-bg);
+    color: var(--info-text);
+    font-weight: 700;
+  }
+
+  .pick-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .pick-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .team-select-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .selected-team-logo-wrap {
+    width: 46px;
+    height: 46px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
+  }
+
+  .selected-team-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+  }
+
+  .team-preview-list {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    max-width: 760px;
+  }
+
+  .team-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: #111827;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .team-preview-item img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .history-card {
+    text-align: center;
+  }
+
+  .history-card p {
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .sheet-frame-wrap {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    background: white;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .sheet-frame {
+    width: 100%;
+    height: 900px;
+    border: none;
+    display: block;
+  }
+
+  @media (max-width: 768px) {
     .content {
-      display: none;
-      background: white;
-      color: black;
-      margin: 20px;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    }
-
-    .content.active {
-      display: block;
-    }
-
-    h1, h2, h3 {
-      margin-top: 0;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 10px 0 20px 0;
-    }
-
-    .hero-logo {
-      max-width: 220px;
-      width: 100%;
-      height: auto;
+      margin: 10px;
+      padding: 16px;
       border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-      margin-bottom: 18px;
-      background: white;
     }
 
-    .hero-title {
-      color: #134611;
-      font-size: 32px;
-      margin-bottom: 8px;
+    th,
+    td {
+      min-width: 100px;
+      font-size: 12px;
+      padding: 6px 8px;
     }
 
-    .hero-subtitle {
-      color: #444;
-      font-size: 17px;
-      margin-bottom: 20px;
+    td:first-child,
+    th:first-child {
+      min-width: 140px;
     }
 
-    .hero-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-
-    .hero-button {
-      padding: 12px 18px;
-      background: #134611;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 15px;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
-
-    .hero-button:hover {
-      background: #0f3810;
-    }
-
-    .hero-link-button {
-      background: #0a66c2;
-    }
-
-    .hero-link-button:hover {
-      background: #084c91;
-    }
-
-    .home-card {
-      background: #f8f8f8;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 18px;
-      margin-bottom: 18px;
-    }
-
-    .home-card a {
-      color: #0a66c2;
-      font-weight: 600;
-    }
-
-    .home-card a:hover {
-      color: #084c91;
-    }
-
-    .home-card h3 {
-      margin-bottom: 10px;
-      color: #134611;
-    }
-
-    .home-card p,
-    .home-card li {
-      line-height: 1.5;
-    }
-
-    .home-card ul,
-    .home-card ol {
-      margin-top: 8px;
-      padding-left: 22px;
-    }
-
-    .signup-card {
-      max-width: 520px;
-      margin: 0 auto;
-      background: #f8f8f8;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 20px;
-    }
-
-    .signup-card label {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 6px;
-      font-weight: 600;
-      color: #134611;
-    }
-
-    input, select, button {
-      font: inherit;
+    .pick-logo {
+      width: 16px;
+      height: 16px;
     }
 
     input[type="text"],
@@ -253,323 +635,35 @@
     input[type="tel"],
     input[type="datetime-local"],
     select {
-      padding: 10px;
-      margin: 5px 0;
-      border: 1px solid #bbb;
-      border-radius: 6px;
-      width: 260px;
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-
-    .signup-card input[type="text"],
-    .signup-card input[type="email"],
-    .signup-card input[type="tel"] {
       width: 100%;
-    }
-
-    .pick-form input[type="text"],
-    .pick-form input[type="email"],
-    .pick-form select {
-      width: 100%;
-      max-width: 420px;
-    }
-
-    button.action-button {
-      padding: 10px 14px;
-      background: #134611;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-      margin-right: 8px;
-    }
-
-    button.action-button:hover {
-      background: #0f3810;
-    }
-
-    .success-message {
-      margin-top: 14px;
-      color: #134611;
-      font-weight: 700;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      width: 100%;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-      width: max-content;
-      min-width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      background: white;
-    }
-
-    th,
-    td {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-      min-width: 120px;
-      vertical-align: middle;
-    }
-
-    td:first-child,
-    th:first-child {
-      position: sticky;
-      left: 0;
-      background: white;
-      z-index: 2;
-      text-align: left;
-      font-weight: bold;
-      min-width: 180px;
-    }
-
-    thead tr:first-child th {
-      background: #ffeb3b;
-      font-weight: bold;
-    }
-
-    thead tr:nth-child(2) th {
-      background: #ddd;
-    }
-
-    thead th:first-child {
-      z-index: 3;
-    }
-
-    .winCell {
-      background: #c8e6c9;
-      color: #1b5e20;
-      font-weight: bold;
-    }
-
-    .lossCell {
-      background: #ffcdd2;
-      color: #b71c1c;
-      font-weight: bold;
-    }
-
-    .eliminatedCell {
-      background: black !important;
-      color: white !important;
-    }
-
-    .result-icon {
-      font-weight: 900;
-      font-size: 16px;
-      line-height: 1;
-      display: inline-block;
-      min-width: 14px;
-    }
-
-    .win-icon {
-      color: #1b5e20;
-    }
-
-    .loss-icon {
-      color: #b71c1c;
-    }
-
-    .pickSubmittedCell {
-      background: #fff59d;
-      color: #5f4b00;
-      font-weight: bold;
-    }
-
-    .noPickCell {
-      background: #bbdefb;
-      color: #0d47a1;
-      font-weight: bold;
-    }
-
-    .pick-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: flex-start;
-    }
-
-    .pick-logo {
-      width: 20px;
-      height: 20px;
-      object-fit: contain;
-      flex-shrink: 0;
-    }
-
-    .team-select-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .selected-team-logo-wrap {
-      width: 42px;
-      height: 42px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-    }
-
-    .selected-team-logo {
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
     }
 
     .team-preview-list {
-      margin-top: 10px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 8px;
-      max-width: 700px;
+      grid-template-columns: 1fr;
     }
 
-    .team-preview-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f7f7f7;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 6px 8px;
-      color: #222;
-      font-size: 14px;
+    .site-title {
+      font-size: 20px;
     }
 
-    .team-preview-item img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      flex-shrink: 0;
+    .hero-title {
+      font-size: 30px;
     }
 
-    #message {
-      margin-top: 12px;
-      font-weight: 600;
-      color: #134611;
-    }
-
-    .history-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-      margin-top: 16px;
-    }
-
-    .history-card {
-      background: #f8f8f8;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .history-card h3 {
-      margin-top: 0;
-      color: #134611;
-    }
-
-    .history-button {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 10px 14px;
-      background: #134611;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-    }
-
-    .history-button:hover {
-      background: #0f3810;
-    }
-
-    .history-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    .sheet-frame-wrap {
-      width: 100%;
-      overflow: hidden;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: white;
+    .hero-logo {
+      max-width: 180px;
     }
 
     .sheet-frame {
-      width: 100%;
-      height: 900px;
-      border: none;
-      display: block;
+      height: 700px;
     }
 
-    @media (max-width: 768px) {
-      .content {
-        margin: 10px;
-        padding: 14px;
-      }
-
-      th,
-      td {
-        min-width: 100px;
-        font-size: 12px;
-        padding: 5px 8px;
-      }
-
-      td:first-child,
-      th:first-child {
-        min-width: 140px;
-      }
-
-      .pick-logo {
-        width: 16px;
-        height: 16px;
-      }
-
-      input[type="text"],
-      input[type="email"],
-      input[type="tel"],
-      input[type="datetime-local"],
-      select {
-        width: 100%;
-      }
-
-      .team-preview-list {
-        grid-template-columns: 1fr;
-      }
-
-      .site-title {
-        font-size: 18px;
-      }
-
-      .hero-title {
-        font-size: 26px;
-      }
-
-      .hero-logo {
-        max-width: 180px;
-      }
-
-      .sheet-frame {
-        height: 700px;
-      }
+    #potTotal,
+    #remainingCount {
+      font-size: 18px;
     }
-  </style>
+  }
+</style>
 </head>
 <body>
   <div class="topbar">
