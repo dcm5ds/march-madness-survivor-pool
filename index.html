@@ -459,11 +459,6 @@
       color: #134611;
     }
 
-
-
-
-
-
     @media (max-width: 768px) {
       .content {
         margin: 10px;
@@ -701,7 +696,6 @@
       doc,
       setDoc,
       getDoc,
-      updateDoc,
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -746,7 +740,6 @@
       closeMenu();
     };
 
-
     function renderPickCell(teamName, teamsMap, result = "") {
       const logo = teamsMap[teamName]?.logo;
 
@@ -775,9 +768,23 @@
       `;
     }
 
-   function isDayRevealed(day) {
-  return isDayLocked(day);
-}
+    function isDayLocked(day) {
+      if (!day) return false;
+      if (day.picksLocked) return true;
+      if (!day.lockTime) return false;
+
+      const now = new Date();
+      const lockTime =
+        typeof day.lockTime.toDate === "function"
+          ? day.lockTime.toDate()
+          : new Date(day.lockTime);
+
+      return now >= lockTime;
+    }
+
+    function isDayRevealed(day) {
+      return isDayLocked(day);
+    }
 
     function formatCutoff(day) {
       if (!day?.lockTime) return day.cutoff || "";
@@ -794,20 +801,6 @@
       }
     }
 
-    function isDayLocked(day) {
-  if (!day) return false;
-  if (day.picksLocked) return true;
-  if (!day.lockTime) return false;
-
-  const now = new Date();
-  const lockTime =
-    typeof day.lockTime.toDate === "function"
-      ? day.lockTime.toDate()
-      : new Date(day.lockTime);
-
-  return now >= lockTime;
-}
-
     async function loadTeamsMap() {
       const snapshot = await getDocs(collection(db, "teams"));
       const map = {};
@@ -818,23 +811,6 @@
 
       cachedTeamsMap = map;
       return map;
-    }
-
-    async function getAllAvailableTeams() {
-      const snapshot = await getDocs(collection(db, "teams"));
-      let teams = [];
-
-      snapshot.forEach(docSnap => {
-        const teamData = docSnap.data();
-        const teamName = docSnap.id;
-
-        if (!teamData.eliminated) {
-          teams.push(teamName);
-        }
-      });
-
-      teams.sort();
-      return teams;
     }
 
     window.updateSelectedTeamLogo = function() {
@@ -870,81 +846,90 @@
       });
     }
 
-window.refreshAvailableTeams = async function() {
-  const select = document.getElementById("teamSelect");
-  const name = document.getElementById("playerName").value.trim();
-  const selectedDay = document.getElementById("daySelect").value;
+    window.refreshAvailableTeams = async function() {
+      const select = document.getElementById("teamSelect");
+      const daySelect = document.getElementById("daySelect");
+      const name = document.getElementById("playerName").value.trim();
+      const selectedDay = daySelect.value;
 
-  select.innerHTML = `<option value="">-- Select a Team --</option>`;
+      select.innerHTML = `<option value="">-- Select a Team --</option>`;
 
-  await loadTeamsMap();
+      await loadTeamsMap();
 
-  if (!selectedDay) {
-    renderTeamPreviewList([]);
-    updateSelectedTeamLogo();
-    return;
-  }
+      if (!selectedDay) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
 
-  const dayRef = doc(db, "days", selectedDay);
-  const daySnap = await getDoc(dayRef);
+      const dayRef = doc(db, "days", selectedDay);
+      const daySnap = await getDoc(dayRef);
 
-  if (!daySnap.exists()) {
-    renderTeamPreviewList([]);
-    updateSelectedTeamLogo();
-    return;
-  }
+      if (!daySnap.exists()) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
 
-  const dayData = daySnap.data();
-  const teamsPlayingThatDay = Array.isArray(dayData.availableTeams)
-    ? dayData.availableTeams
-    : [];
+      const dayData = daySnap.data();
 
-  const allAvailableTeams = teamsPlayingThatDay.filter(team => {
-    return !cachedTeamsMap[team]?.eliminated;
-  });
+      if (isDayLocked(dayData)) {
+        renderTeamPreviewList([]);
+        updateSelectedTeamLogo();
+        return;
+      }
 
-  if (!name) {
-    allAvailableTeams.forEach(team => {
-      select.innerHTML += `<option value="${team}">${team}</option>`;
-    });
+      const teamsPlayingThatDay = Array.isArray(dayData.availableTeams)
+        ? dayData.availableTeams
+        : [];
 
-    renderTeamPreviewList(allAvailableTeams);
-    updateSelectedTeamLogo();
-    return;
-  }
+      const allAvailableTeams = teamsPlayingThatDay.filter(team => {
+        return !cachedTeamsMap[team]?.eliminated;
+      });
 
-  const playerRef = doc(db, "players", name);
-  const playerSnap = await getDoc(playerRef);
+      if (!name) {
+        allAvailableTeams.forEach(team => {
+          select.innerHTML += `<option value="${team}">${team}</option>`;
+        });
 
-  let picks = {};
-  let currentDayPick = "";
+        renderTeamPreviewList(allAvailableTeams);
+        updateSelectedTeamLogo();
+        return;
+      }
 
-  if (playerSnap.exists()) {
-    const data = playerSnap.data();
-    picks = data.picks || {};
-    currentDayPick = picks[selectedDay] || "";
-  }
+      const playerRef = doc(db, "players", name);
+      const playerSnap = await getDoc(playerRef);
 
-  const usedTeamsOnOtherDays = Object.entries(picks)
-    .filter(([dayKey]) => dayKey !== selectedDay)
-    .map(([, pickedTeam]) => pickedTeam);
+      let picks = {};
+      let currentDayPick = "";
 
-  const filteredTeams = allAvailableTeams.filter(team => {
-    return !usedTeamsOnOtherDays.includes(team);
-  });
+      if (playerSnap.exists()) {
+        const data = playerSnap.data();
+        picks = data.picks || {};
+        currentDayPick = picks[selectedDay] || "";
+      }
 
-  filteredTeams.forEach(team => {
-    const isSelected = team === currentDayPick ? "selected" : "";
-    select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
-  });
+      const usedTeamsOnOtherDays = Object.entries(picks)
+        .filter(([dayKey]) => dayKey !== selectedDay)
+        .map(([, pickedTeam]) => pickedTeam);
 
-  renderTeamPreviewList(filteredTeams);
-  updateSelectedTeamLogo();
-};
+      const filteredTeams = allAvailableTeams.filter(team => {
+        return !usedTeamsOnOtherDays.includes(team);
+      });
+
+      filteredTeams.forEach(team => {
+        const isSelected = team === currentDayPick ? "selected" : "";
+        select.innerHTML += `<option value="${team}" ${isSelected}>${team}</option>`;
+      });
+
+      renderTeamPreviewList(filteredTeams);
+      updateSelectedTeamLogo();
+    };
 
     async function loadDays() {
       const snapshot = await getDocs(collection(db, "days"));
       const select = document.getElementById("daySelect");
+      const currentValue = select.value;
       select.innerHTML = `<option value="">-- Select a Day --</option>`;
 
       let days = [];
@@ -960,55 +945,19 @@ window.refreshAvailableTeams = async function() {
       cachedDays = days;
 
       days.forEach(day => {
-  const locked = isDayLocked(day);
-  select.innerHTML += `
-    <option value="${day.id}" ${locked ? "disabled" : ""}>
-      ${day.label || day.id}${locked ? " (Locked)" : ""}
-    </option>
-  `;
-});
+        const locked = isDayLocked(day);
+        select.innerHTML += `
+          <option value="${day.id}" ${locked ? "disabled" : ""}>
+            ${day.label || day.id}${locked ? " (Locked)" : ""}
+          </option>
+        `;
+      });
+
+      if (days.some(day => day.id === currentValue && !isDayLocked(day))) {
+        select.value = currentValue;
+      }
 
       refreshAvailableTeams();
-    }
-
-    
-
-    async function autoEliminateMissingPicks(days, playerDocs) {
-      const now = new Date();
-
-      for (const playerDoc of playerDocs) {
-        const data = playerDoc.data();
-        const playerId = playerDoc.id;
-        const picks = data.picks || {};
-        const currentStatus = data.status || "alive";
-
-        if (currentStatus !== "alive") continue;
-
-        let shouldEliminate = false;
-
-        for (const day of days) {
-          if (!day.lockTime) continue;
-
-          const dayLockTime =
-            typeof day.lockTime.toDate === "function"
-              ? day.lockTime.toDate()
-              : new Date(day.lockTime);
-
-          const dayHasLocked = now >= dayLockTime;
-          const playerHasPick = !!picks[day.id];
-
-          if (dayHasLocked && !playerHasPick) {
-            shouldEliminate = true;
-            break;
-          }
-        }
-
-        if (shouldEliminate) {
-          await updateDoc(doc(db, "players", playerId), {
-            status: "eliminated"
-          });
-        }
-      }
     }
 
     async function renderStandings() {
@@ -1027,8 +976,6 @@ window.refreshAvailableTeams = async function() {
         document.getElementById("remainingCount").innerText = "Remaining Players: 0";
         return;
       }
-
-      await autoEliminateMissingPicks(days, playerDocs);
 
       thead.innerHTML = `
         <tr>
@@ -1052,7 +999,7 @@ window.refreshAvailableTeams = async function() {
 
         if (playerStatus === "alive") aliveCount++;
 
-        let eliminatedReached = false;
+        let eliminatedReached = playerStatus === "eliminated";
         let row = `<tr>`;
         row += `<td>${data.name || playerDoc.id}</td>`;
 
@@ -1208,9 +1155,9 @@ window.refreshAvailableTeams = async function() {
       const dayData = daySnap.data();
 
       if (isDayLocked(dayData)) {
-  message.innerText = "Picks are locked for that day.";
-  return;
-}
+        message.innerText = "Picks are locked for that day.";
+        return;
+      }
 
       let picks = playerData.picks || {};
       const status = playerData.status || "alive";
@@ -1271,21 +1218,20 @@ window.refreshAvailableTeams = async function() {
 
         select.innerHTML = `<option value="">-- Select a Day --</option>`;
         days.forEach(day => {
-  const locked = isDayLocked(day);
-  select.innerHTML += `
-    <option value="${day.id}" ${locked ? "disabled" : ""}>
-      ${day.label || day.id}${locked ? " (Locked)" : ""}
-    </option>
-  `;
-});
+          const locked = isDayLocked(day);
+          select.innerHTML += `
+            <option value="${day.id}" ${locked ? "disabled" : ""}>
+              ${day.label || day.id}${locked ? " (Locked)" : ""}
+            </option>
+          `;
+        });
 
-        if (days.some(day => day.id === currentValue)) {
+        if (days.some(day => day.id === currentValue && !isDayLocked(day))) {
           select.value = currentValue;
         }
 
         await refreshAvailableTeams();
         await renderStandings();
-
       });
 
       onSnapshot(collection(db, "teams"), async (snapshot) => {
