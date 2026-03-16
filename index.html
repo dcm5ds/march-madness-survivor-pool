@@ -662,6 +662,38 @@
     #remainingCount {
       font-size: 18px;
     }
+    .stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 220px;
+  background: linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid #e5e7eb;
+}
+
+.stat-label {
+  font-family: "Oswald", Arial, sans-serif;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: .5px;
+  color: #6b7280;
+}
+
+.stat-value {
+  font-family: "Oswald", Arial, sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 4px;
+}
   }
 </style>
 </head>
@@ -798,8 +830,19 @@
 
   <div id="standings" class="content">
     <h2>Standings</h2>
-    <h3 id="potTotal">Total Pot: $0</h3>
-    <h3 id="remainingCount">Remaining Players: 0</h3>
+    <div class="stats-bar">
+
+  <div class="stat-card">
+    <div class="stat-label">💰 Total Pot</div>
+    <div id="potTotal" class="stat-value">$0</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Players Remaining</div>
+    <div id="remainingCount" class="stat-value">0</div>
+  </div>
+
+</div>
 
     <div class="table-wrapper">
       <table id="standingsTable">
@@ -1258,7 +1301,7 @@
       const totalPlayers = playerDocs.length;
 const totalPot = totalPlayers * 5;
 
-document.getElementById("potTotal").innerText = "Total Pot: $" + totalPot;
+document.getElementById("potTotal").innerText = "$" + totalPot;
 
 if (!days.length) {
   thead.innerHTML = `
@@ -1338,8 +1381,7 @@ if (!days.length) {
         tbody.innerHTML += row;
       });
 
-      document.getElementById("remainingCount").innerText =
-        "Remaining Players: " + aliveCount;
+      document.getElementById("remainingCount").innerText = aliveCount;
     }
 
     window.submitSignup = async function() {
