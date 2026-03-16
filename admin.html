@@ -88,7 +88,11 @@
 </head>
 <body>
   <h1>Survivor Pool Admin</h1>
-
+<div class="card">
+  <button id="loginButton" type="button">Sign in with Google</button>
+  <button id="logoutButton" type="button" style="display:none;">Sign out</button>
+  <p id="authStatus" class="message"></p>
+</div>
   <div class="card">
     <p>Use this page to manually lock or unlock picks for each day.</p>
     <div id="dayGrid" class="day-grid"></div>
@@ -97,14 +101,20 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     const firebaseConfig = {
       apiKey: "AIzaSyAItF0tjggt3yRvuEPKaCo2cDGIx76-eaM",
       authDomain: "ncaa-tournament-survivor-pool.firebaseapp.com",
@@ -113,7 +123,60 @@
       messagingSenderId: "870538967309",
       appId: "1:870538967309:web:89d2c0f88ea239eec19844"
     };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
+const provider = new GoogleAuthProvider();
+
+// IMPORTANT: replace this with your own Google email
+const ADMIN_EMAIL = "davidcmcquillen@gmail.com";
+
+const loginButton = document.getElementById("loginButton");
+const logoutButton = document.getElementById("logoutButton");
+const authStatus = document.getElementById("authStatus");
+const dayGrid = document.getElementById("dayGrid");
+
+loginButton.addEventListener("click", async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    console.error(error);
+    authStatus.innerText = "Login failed.";
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error(error);
+    authStatus.innerText = "Logout failed.";
+  }
+});
+
+onAuthStateChanged(auth, async (user) => {
+  dayGrid.innerHTML = "";
+
+  if (!user) {
+    loginButton.style.display = "inline-block";
+    logoutButton.style.display = "none";
+    authStatus.innerText = "Not signed in.";
+    return;
+  }
+
+  if (user.email !== ADMIN_EMAIL) {
+    loginButton.style.display = "none";
+    logoutButton.style.display = "inline-block";
+    authStatus.innerText = "Signed in, but not authorized as admin.";
+    return;
+  }
+
+  loginButton.style.display = "none";
+  logoutButton.style.display = "inline-block";
+  authStatus.innerText = `Signed in as ${user.email}`;
+  await loadDays();
+});
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -164,23 +227,31 @@
         const checkbox = card.querySelector("input");
 
         checkbox.addEventListener("change", async () => {
-          try {
-            await setDoc(
-              doc(db, "days", day.id),
-              { picksLocked: checkbox.checked },
-              { merge: true }
-            );
+  const user = auth.currentUser;
 
-            document.getElementById("message").innerText =
-              `${day.label || day.id} updated successfully.`;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    document.getElementById("message").innerText = "You are not authorized.";
+    checkbox.checked = !checkbox.checked;
+    return;
+  }
 
-            loadDays();
-          } catch (error) {
-            console.error(error);
-            document.getElementById("message").innerText =
-              "Could not update that day.";
-          }
-        });
+  try {
+    await setDoc(
+      doc(db, "days", day.id),
+      { picksLocked: checkbox.checked },
+      { merge: true }
+    );
+
+    document.getElementById("message").innerText =
+      `${day.label || day.id} updated successfully.`;
+
+    loadDays();
+  } catch (error) {
+    console.error(error);
+    document.getElementById("message").innerText =
+      "Could not update that day.";
+  }
+});
 
         dayGrid.appendChild(card);
       });
