@@ -459,6 +459,65 @@
       color: #134611;
     }
 
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .history-card {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .history-card h3 {
+      margin-top: 0;
+      color: #134611;
+    }
+
+    .history-button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #134611;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .history-button:hover {
+      background: #0f3810;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .sheet-frame-wrap {
+      width: 100%;
+      overflow: hidden;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .sheet-frame {
+      width: 100%;
+      height: 900px;
+      border: none;
+      display: block;
+    }
+
     @media (max-width: 768px) {
       .content {
         margin: 10px;
@@ -505,6 +564,10 @@
       .hero-logo {
         max-width: 180px;
       }
+
+      .sheet-frame {
+        height: 700px;
+      }
     }
   </style>
 </head>
@@ -532,6 +595,9 @@
     </button>
     <button class="menu-link" id="menu-standings" type="button" onclick="switchPage('standings')">
       Standings
+    </button>
+    <button class="menu-link" id="menu-history" type="button" onclick="switchPage('history')">
+      Pool History
     </button>
     <button class="menu-link" id="menu-pick" type="button" onclick="switchPage('pick')">
       Make a Pick
@@ -596,6 +662,7 @@
         <li><strong>Home:</strong> Pool rules and instructions.</li>
         <li><strong>Sign Up:</strong> Join the pool.</li>
         <li><strong>Standings:</strong> View all players and their progress by day.</li>
+        <li><strong>Pool History:</strong> View results from prior years.</li>
         <li><strong>Make a Pick:</strong> Submit or change your pick before the lock time.</li>
       </ul>
     </div>
@@ -651,6 +718,123 @@
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+  </div>
+
+  <div id="history" class="content">
+    <h2>Pool History</h2>
+    <p>View past Survivor Pool results by year.</p>
+
+    <div class="history-grid">
+      <div class="history-card">
+        <h3>2021</h3>
+        <p>Results and standings from the 2021 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2021')">View 2021</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2022</h3>
+        <p>Results and standings from the 2022 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2022')">View 2022</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2023</h3>
+        <p>Results and standings from the 2023 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2023')">View 2023</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2024</h3>
+        <p>Results and standings from the 2024 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2024')">View 2024</button>
+      </div>
+
+      <div class="history-card">
+        <h3>2025</h3>
+        <p>Results and standings from the 2025 pool.</p>
+        <button class="history-button" type="button" onclick="switchPage('history-2025')">View 2025</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="history-2021" class="content">
+    <h2>Pool History - 2021</h2>
+
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+
+    <div class="sheet-frame-wrap">
+      <iframe
+        class="sheet-frame"
+        src="https://docs.google.com/spreadsheets/d/1yCbJDBx9vEoBSwQQKVIqK8v6nLLX8eke0FpQed9ymGY/preview?gid=2027525981"
+        title="2021 Pool History"
+      ></iframe>
+    </div>
+  </div>
+
+  <div id="history-2022" class="content">
+    <h2>Pool History - 2022</h2>
+
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+
+    <div class="sheet-frame-wrap">
+      <iframe
+        class="sheet-frame"
+        src="https://docs.google.com/spreadsheets/d/1Bz_r2SVC6ugyRJsPZTbMhKihesdOpiSuxsRoEyQ6yU4/preview?gid=2027525981"
+        title="2022 Pool History"
+      ></iframe>
+    </div>
+  </div>
+
+  <div id="history-2023" class="content">
+    <h2>Pool History - 2023</h2>
+
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+
+    <div class="sheet-frame-wrap">
+      <iframe
+        class="sheet-frame"
+        src="https://docs.google.com/spreadsheets/d/1gc-4ggBE3qvvjEP1d_CK_QyQeIqqSqYi9NpHo1MoBWs/preview?gid=2089089985"
+        title="2023 Pool History"
+      ></iframe>
+    </div>
+  </div>
+
+  <div id="history-2024" class="content">
+    <h2>Pool History - 2024</h2>
+
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+
+    <div class="sheet-frame-wrap">
+      <iframe
+        class="sheet-frame"
+        src="https://docs.google.com/spreadsheets/d/1833_25zTn3A-wpU7-qK_xOKFQcJiMws1dDFx9PdtlMY/preview?gid=2089089985"
+        title="2024 Pool History"
+      ></iframe>
+    </div>
+  </div>
+
+  <div id="history-2025" class="content">
+    <h2>Pool History - 2025</h2>
+
+    <div class="history-actions">
+      <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
+    </div>
+
+    <div class="sheet-frame-wrap">
+      <iframe
+        class="sheet-frame"
+        src="https://docs.google.com/spreadsheets/d/14Xt6oR9zKuM1TEn6yub0FimgaCJOB9Lnkxdbg_5sy-k/preview?gid=2089089985"
+        title="2025 Pool History"
+      ></iframe>
     </div>
   </div>
 
@@ -735,7 +919,16 @@
       });
 
       document.getElementById(page).classList.add("active");
-      document.getElementById("menu-" + page).classList.add("active");
+
+      const historyPages = ["history", "history-2021", "history-2022", "history-2023", "history-2024", "history-2025"];
+
+      if (historyPages.includes(page)) {
+        const historyMenu = document.getElementById("menu-history");
+        if (historyMenu) historyMenu.classList.add("active");
+      } else {
+        const menuButton = document.getElementById("menu-" + page);
+        if (menuButton) menuButton.classList.add("active");
+      }
 
       closeMenu();
     };
