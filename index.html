@@ -177,6 +177,27 @@
       display: block;
     }
 
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .sortable:hover {
+      background: rgba(214, 31, 38, 0.08);
+    }
+
+    .sortable .sort-indicator {
+      display: inline-block;
+      min-width: 14px;
+      margin-left: 4px;
+      font-size: 12px;
+    }
+
+    .sortable.active-sort {
+      color: var(--accent-red-dark);
+    }
+
     .content {
       display: none;
       background: var(--card-bg);
@@ -905,6 +926,26 @@
     <h2>Pool History</h2>
     <p>View past Survivor Pool results by year.</p>
 
+    <div class="history-card">
+      <h3>Lifetime Standings</h3>
+      <div class="table-wrapper">
+        <table id="historyStandingsTable">
+          <thead>
+            <tr>
+              <th class="sortable active-sort" data-sort-key="name" data-sort-type="text" onclick="sortHistoryStandings('name', 'text')">Name <span class="sort-indicator">▲</span></th>
+              <th class="sortable" data-sort-key="wins" data-sort-type="number" onclick="sortHistoryStandings('wins', 'number')">Wins <span class="sort-indicator">↕</span></th>
+              <th class="sortable" data-sort-key="losses" data-sort-type="number" onclick="sortHistoryStandings('losses', 'number')">Losses <span class="sort-indicator">↕</span></th>
+              <th class="sortable" data-sort-key="pct" data-sort-type="number" onclick="sortHistoryStandings('pct', 'number')">Percent <span class="sort-indicator">↕</span></th>
+              <th class="sortable" data-sort-key="yearsPlayed" data-sort-type="number" onclick="sortHistoryStandings('yearsPlayed', 'number')">Years Played <span class="sort-indicator">↕</span></th>
+              <th class="sortable" data-sort-key="championships" data-sort-type="number" onclick="sortHistoryStandings('championships', 'number')">Championships <span class="sort-indicator">↕</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="history-grid">
       <div class="history-card">
         <h3>2025</h3>
         <p>Results and standings from the 2025 pool.</p>
@@ -923,21 +964,18 @@
         <button class="history-button" type="button" onclick="switchPage('history-2023')">View 2023</button>
       </div>
 
-            <div class="history-card">
+      <div class="history-card">
         <h3>2022</h3>
         <p>Results and standings from the 2022 pool.</p>
         <button class="history-button" type="button" onclick="switchPage('history-2022')">View 2022</button>
       </div>
 
-    <div class="history-grid">
       <div class="history-card">
         <h3>2021</h3>
         <p>Results and standings from the 2021 pool.</p>
         <button class="history-button" type="button" onclick="switchPage('history-2021')">View 2021</button>
       </div>
-    </div>
 
-        <div class="history-grid">
       <div class="history-card">
         <h3>2019</h3>
         <p>Results and standings from the 2019 pool.</p>
@@ -946,9 +984,8 @@
     </div>
   </div>
 
- 
 
-  <div id="history-2025" class="content">
+<div id="history-2025" class="content">
     <h2>Pool History - 2025</h2>
     <div class="history-actions">
       <button class="history-button" type="button" onclick="switchPage('history')">← Back to Pool History</button>
@@ -1069,6 +1106,254 @@
     let cachedTeamsMap = {};
     let cachedDays = [];
     let cachedPlayers = [];
+
+    const lifetimeHistoryStandings = [
+      { name: "Adam Stautberg", wins: 5, losses: 3, pct: 0.625, yearsPlayed: 3, championships: 0 },
+      { name: "Aidan Bender", wins: 12, losses: 2, pct: 0.857, yearsPlayed: 2, championships: 0 },
+      { name: "Alex Menendez", wins: 6, losses: 2, pct: 0.750, yearsPlayed: 2, championships: 0 },
+      { name: "Alex Pilewski", wins: 18, losses: 5, pct: 0.783, yearsPlayed: 5, championships: 0.5 },
+      { name: "Alex Vegliante", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Alex Zavislan", wins: 9, losses: 2, pct: 0.818, yearsPlayed: 2, championships: 0 },
+      { name: "Alicia Shields", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Andrew Krouch", wins: 10, losses: 3, pct: 0.769, yearsPlayed: 3, championships: 0 },
+      { name: "Andrew Mayleben", wins: 16, losses: 5, pct: 0.762, yearsPlayed: 5, championships: 0 },
+      { name: "Andy McCall", wins: 14, losses: 4, pct: 0.778, yearsPlayed: 4, championships: 0 },
+      { name: "Benjamin Padden", wins: 11, losses: 3, pct: 0.786, yearsPlayed: 3, championships: 0 },
+      { name: "Beth Raymond", wins: 10, losses: 5, pct: 0.667, yearsPlayed: 5, championships: 0 },
+      { name: "Beverly Burgess", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Bill Kent", wins: 7, losses: 3, pct: 0.700, yearsPlayed: 3, championships: 0 },
+      { name: "Bill McQuillen", wins: 1, losses: 3, pct: 0.250, yearsPlayed: 3, championships: 0 },
+      { name: "Bob Lauterberg", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Bobby Perry", wins: 10, losses: 6, pct: 0.625, yearsPlayed: 6, championships: 0 },
+      { name: "Bradley Mason", wins: 6, losses: 2, pct: 0.750, yearsPlayed: 2, championships: 0 },
+      { name: "Brandon Hamel", wins: 9, losses: 3, pct: 0.750, yearsPlayed: 3, championships: 0 },
+      { name: "Brandon Hunt", wins: 8, losses: 1, pct: 0.889, yearsPlayed: 1, championships: 0 },
+      { name: "Brett Layman", wins: 24, losses: 6, pct: 0.800, yearsPlayed: 6, championships: 1.5 },
+      { name: "Brock Ghelfi", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Bryan Pfirrmann", wins: 13, losses: 4, pct: 0.765, yearsPlayed: 4, championships: 0 },
+      { name: "Bryan Soltis", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Cam Kuchel", wins: 15, losses: 4, pct: 0.789, yearsPlayed: 5, championships: 1 },
+      { name: "Carlos Oliva", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Caroline Raymond", wins: 11, losses: 5, pct: 0.688, yearsPlayed: 5, championships: 0 },
+      { name: "Casey Bulik", wins: 13, losses: 4, pct: 0.765, yearsPlayed: 4, championships: 0 },
+      { name: "Charlie Fitzner", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Chris Lake", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Christian Gayton", wins: 4, losses: 1, pct: 0.800, yearsPlayed: 1, championships: 0 },
+      { name: "Christian Porter", wins: 17, losses: 6, pct: 0.739, yearsPlayed: 6, championships: 0 },
+      { name: "Christian Reusche", wins: 4, losses: 1, pct: 0.800, yearsPlayed: 1, championships: 0 },
+      { name: "Clayton Hatcher", wins: 19, losses: 6, pct: 0.760, yearsPlayed: 6, championships: 0 },
+      { name: "Cody Taduran", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Connor Foley", wins: 12, losses: 5, pct: 0.706, yearsPlayed: 5, championships: 0 },
+      { name: "Conor McGrath", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Dan Drangstveit", wins: 21, losses: 6, pct: 0.778, yearsPlayed: 6, championships: 0 },
+      { name: "Daniel Maguire", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "David Kullman", wins: 14, losses: 5, pct: 0.737, yearsPlayed: 5, championships: 0 },
+      { name: "David McQuillen", wins: 15, losses: 6, pct: 0.714, yearsPlayed: 6, championships: 0 },
+      { name: "Debbie Kent", wins: 4, losses: 2, pct: 0.667, yearsPlayed: 2, championships: 0 },
+      { name: "Dillon Wild", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Dylan Flock", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Eliza McQuillen", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Eric Bamford", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Eric Schaeb", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Gage Beckwith", wins: 7, losses: 2, pct: 0.778, yearsPlayed: 2, championships: 0 },
+      { name: "George Moore", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Gianna Bender", wins: 10, losses: 3, pct: 0.769, yearsPlayed: 3, championships: 0 },
+      { name: "Grace Drury", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Greer Clausen", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Greg Raymond", wins: 18, losses: 6, pct: 0.750, yearsPlayed: 6, championships: 0 },
+      { name: "Hannah Klein", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Hemal Himatlal", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Henry Meyerson", wins: 15, losses: 4, pct: 0.789, yearsPlayed: 4, championships: 0 },
+      { name: "Henry Peltz", wins: 15, losses: 5, pct: 0.750, yearsPlayed: 6, championships: 1 },
+      { name: "Ian Callahan", wins: 4, losses: 1, pct: 0.800, yearsPlayed: 1, championships: 0 },
+      { name: "Jack Adams", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Jack Burke", wins: 12, losses: 4, pct: 0.750, yearsPlayed: 4, championships: 0 },
+      { name: "Jack Colavecchio", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Jack Morris", wins: 6, losses: 4, pct: 0.600, yearsPlayed: 4, championships: 0 },
+      { name: "Jack Padden", wins: 12, losses: 3, pct: 0.800, yearsPlayed: 3, championships: 0 },
+      { name: "Jack Parker", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Jack Raymond", wins: 17, losses: 6, pct: 0.739, yearsPlayed: 6, championships: 0 },
+      { name: "Jacob Zarefsky", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Jake Kerner", wins: 13, losses: 2, pct: 0.867, yearsPlayed: 2, championships: 0.5 },
+      { name: "Jared Cooper", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Jared DeFlippo", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Jay Carroll", wins: 3, losses: 3, pct: 0.500, yearsPlayed: 3, championships: 0 },
+      { name: "Jaymes Longenecker", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Jeff Stautberg", wins: 13, losses: 5, pct: 0.722, yearsPlayed: 5, championships: 0 },
+      { name: "Jim Kenny", wins: 4, losses: 1, pct: 0.800, yearsPlayed: 1, championships: 0 },
+      { name: "Joe Seib", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "John McQuillen", wins: 25, losses: 6, pct: 0.806, yearsPlayed: 6, championships: 0 },
+      { name: "Josh Barlow", wins: 7, losses: 2, pct: 0.778, yearsPlayed: 2, championships: 0 },
+      { name: "Josh Tupper", wins: 20, losses: 6, pct: 0.769, yearsPlayed: 6, championships: 0 },
+      { name: "Julia Raymond", wins: 6, losses: 3, pct: 0.667, yearsPlayed: 3, championships: 0 },
+      { name: "Kate McQuillen", wins: 20, losses: 4, pct: 0.833, yearsPlayed: 4, championships: 0.5 },
+      { name: "Kate Ryan", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Kathleen Boyce", wins: 11, losses: 4, pct: 0.733, yearsPlayed: 4, championships: 0 },
+      { name: "Keaton Thomas", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Keenan Ryan", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Kendall McQuillen", wins: 15, losses: 3, pct: 0.833, yearsPlayed: 4, championships: 1 },
+      { name: "Kenny Matt", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Kevin Dillon", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Kevin Keenan", wins: 4, losses: 4, pct: 0.500, yearsPlayed: 4, championships: 0 },
+      { name: "Kevin Sprotte", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Kyle Mclellan", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Kyle Padden", wins: 14, losses: 6, pct: 0.700, yearsPlayed: 6, championships: 0 },
+      { name: "Lee Terwilliger", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Lenny Marshall", wins: 12, losses: 5, pct: 0.706, yearsPlayed: 5, championships: 0 },
+      { name: "Lenny Marshall Sr.", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Liam Burke", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Liam Earley", wins: 12, losses: 4, pct: 0.750, yearsPlayed: 4, championships: 0 },
+      { name: "Linda McQuillen", wins: 5, losses: 3, pct: 0.625, yearsPlayed: 3, championships: 0 },
+      { name: "Lindsey Dorritie", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Lolly Kruse", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Luke Billhorn", wins: 4, losses: 2, pct: 0.667, yearsPlayed: 2, championships: 0 },
+      { name: "Luke Seib", wins: 13, losses: 5, pct: 0.722, yearsPlayed: 5, championships: 0 },
+      { name: "Mathew Evancho", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Matt Gibbs", wins: 6, losses: 3, pct: 0.667, yearsPlayed: 3, championships: 0 },
+      { name: "Matt Kenny", wins: 9, losses: 3, pct: 0.750, yearsPlayed: 3, championships: 0 },
+      { name: "Matt Kent", wins: 6, losses: 3, pct: 0.667, yearsPlayed: 3, championships: 0 },
+      { name: "Matt Klausner", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Matt McQuillen", wins: 19, losses: 6, pct: 0.760, yearsPlayed: 6, championships: 0 },
+      { name: "Matt Pik", wins: 15, losses: 6, pct: 0.714, yearsPlayed: 6, championships: 0 },
+      { name: "Matthew Brown", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Matthew Kimble", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Michael Dore", wins: 9, losses: 1, pct: 0.900, yearsPlayed: 1, championships: 0.5 },
+      { name: "Michael Jamieson", wins: 8, losses: 1, pct: 0.889, yearsPlayed: 1, championships: 0 },
+      { name: "Michael Phillips", wins: 14, losses: 6, pct: 0.700, yearsPlayed: 6, championships: 0 },
+      { name: "Michael Strabone", wins: 20, losses: 5, pct: 0.800, yearsPlayed: 6, championships: 1 },
+      { name: "Mike McQuillen", wins: 15, losses: 4, pct: 0.789, yearsPlayed: 4, championships: 0 },
+      { name: "Mike Rodriguez", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Nathan Gemmell", wins: 13, losses: 3, pct: 0.813, yearsPlayed: 3, championships: 0 },
+      { name: "Neil Seldomridge", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Nick Brooks", wins: 23, losses: 6, pct: 0.793, yearsPlayed: 6, championships: 0 },
+      { name: "Nick Hopkins", wins: 15, losses: 6, pct: 0.714, yearsPlayed: 6, championships: 0 },
+      { name: "Nick Porter", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Nico Lake", wins: 24, losses: 4, pct: 0.857, yearsPlayed: 4, championships: 0 },
+      { name: "Norah McDonald", wins: 3, losses: 2, pct: 0.600, yearsPlayed: 2, championships: 0 },
+      { name: "Owen McQuillen", wins: 6, losses: 3, pct: 0.667, yearsPlayed: 3, championships: 0 },
+      { name: "Pablo Lake", wins: 4, losses: 1, pct: 0.800, yearsPlayed: 1, championships: 0 },
+      { name: "Parker McQuillen", wins: 8, losses: 1, pct: 0.889, yearsPlayed: 1, championships: 0 },
+      { name: "Patrick Corbett", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Patrick McQuillen", wins: 4, losses: 4, pct: 0.500, yearsPlayed: 4, championships: 0 },
+      { name: "Patrick Mingey", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Paul McQuillen", wins: 8, losses: 3, pct: 0.727, yearsPlayed: 3, championships: 0 },
+      { name: "Peggy Evancho", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Rashid Kabbani", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Reed Williams", wins: 9, losses: 1, pct: 0.900, yearsPlayed: 1, championships: 0.5 },
+      { name: "Rod Ventosa", wins: 5, losses: 1, pct: 0.833, yearsPlayed: 1, championships: 0 },
+      { name: "Rodd Padden", wins: 10, losses: 4, pct: 0.714, yearsPlayed: 4, championships: 0 },
+      { name: "Ryan Zukerman", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Sam Blond", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Sam Yoshino", wins: 9, losses: 2, pct: 0.818, yearsPlayed: 2, championships: 0 },
+      { name: "Sarah Raymond", wins: 1, losses: 3, pct: 0.250, yearsPlayed: 3, championships: 0 },
+      { name: "Savannah Barkdull", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Scott Patterson", wins: 27, losses: 6, pct: 0.818, yearsPlayed: 6, championships: 0 },
+      { name: "Scott Shnipes", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Sean Wallisch", wins: 5, losses: 3, pct: 0.625, yearsPlayed: 3, championships: 0 },
+      { name: "Shane Kelly", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Spencer Lee", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Stephen Chiaramonte", wins: 10, losses: 3, pct: 0.769, yearsPlayed: 3, championships: 0 },
+      { name: "Stephen Kullman", wins: 10, losses: 2, pct: 0.833, yearsPlayed: 2, championships: 0 },
+      { name: "Steve Corcoran III", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Steven Estoclet", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Stu Kullman", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Ted Hattemer-Maier", wins: 1, losses: 1, pct: 0.500, yearsPlayed: 1, championships: 0 },
+      { name: "Ted Lunsford", wins: 6, losses: 1, pct: 0.857, yearsPlayed: 1, championships: 0 },
+      { name: "Ted Marcou", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Tim Callahan", wins: 12, losses: 4, pct: 0.750, yearsPlayed: 4, championships: 0 },
+      { name: "Timmy Ahlstrom", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Trevor Shea", wins: 18, losses: 6, pct: 0.750, yearsPlayed: 6, championships: 0 },
+      { name: "Trish McQuillen", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Tucker White", wins: 9, losses: 4, pct: 0.692, yearsPlayed: 4, championships: 0 },
+      { name: "Tyler Lockard", wins: 13, losses: 4, pct: 0.765, yearsPlayed: 4, championships: 0 },
+      { name: "Tyler Sweeney", wins: 2, losses: 1, pct: 0.667, yearsPlayed: 1, championships: 0 },
+      { name: "Udai Virk", wins: 0, losses: 1, pct: 0.000, yearsPlayed: 1, championships: 0 },
+      { name: "Wayne Evancho", wins: 3, losses: 1, pct: 0.750, yearsPlayed: 1, championships: 0 },
+      { name: "Will Dennis", wins: 10, losses: 6, pct: 0.625, yearsPlayed: 6, championships: 0 },
+      { name: "Will McQuillen", wins: 10, losses: 2, pct: 0.833, yearsPlayed: 2, championships: 0 },
+      { name: "Will Morris", wins: 16, losses: 6, pct: 0.727, yearsPlayed: 6, championships: 0 },
+      { name: "Zach Adelstein", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 },
+      { name: "Zach Keninitz", wins: 7, losses: 1, pct: 0.875, yearsPlayed: 1, championships: 0 }
+    ];
+
+    function formatHistoryPct(value) {
+      return Number(value).toFixed(3);
+    }
+
+    function formatChampionships(value) {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+
+    let historySortKey = "name";
+    let historySortDirection = "asc";
+
+    function compareHistoryValues(a, b, key, type) {
+      if (type === "number") {
+        return Number(a[key]) - Number(b[key]);
+      }
+      return String(a[key]).localeCompare(String(b[key]));
+    }
+
+    function updateHistorySortIndicators() {
+      const headers = document.querySelectorAll("#historyStandingsTable th.sortable");
+      headers.forEach(header => {
+        const isActive = header.dataset.sortKey === historySortKey;
+        header.classList.toggle("active-sort", isActive);
+
+        const indicator = header.querySelector(".sort-indicator");
+        if (!indicator) return;
+
+        if (isActive) {
+          indicator.textContent = historySortDirection === "asc" ? "▲" : "▼";
+        } else {
+          indicator.textContent = "↕";
+        }
+      });
+    }
+
+    function renderHistoryStandings() {
+      const tbody = document.querySelector("#historyStandingsTable tbody");
+      if (!tbody) return;
+
+      const activeHeader = document.querySelector(`#historyStandingsTable th[data-sort-key="${historySortKey}"]`);
+      const sortType = activeHeader ? activeHeader.dataset.sortType : "text";
+
+      const sortedStandings = [...lifetimeHistoryStandings].sort((a, b) => {
+        const comparison = compareHistoryValues(a, b, historySortKey, sortType);
+        if (comparison !== 0) {
+          return historySortDirection === "asc" ? comparison : -comparison;
+        }
+
+        return a.name.localeCompare(b.name);
+      });
+
+      tbody.innerHTML = sortedStandings.map(player => {
+        const championEmoji = player.championships > 0 ? " 🏆" : "";
+        return `
+          <tr>
+            <td>${player.name}${championEmoji}</td>
+            <td>${player.wins}</td>
+            <td>${player.losses}</td>
+            <td>${formatHistoryPct(player.pct)}</td>
+            <td>${player.yearsPlayed}</td>
+            <td>${formatChampionships(player.championships)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      updateHistorySortIndicators();
+    }
+
+    window.sortHistoryStandings = function(key, type) {
+      if (historySortKey === key) {
+        historySortDirection = historySortDirection === "asc" ? "desc" : "asc";
+      } else {
+        historySortKey = key;
+        historySortDirection = type === "text" ? "asc" : "desc";
+      }
+
+      renderHistoryStandings();
+    };
 
     window.openMenu = function() {
       document.getElementById("sideMenu").classList.add("open");
@@ -1615,6 +1900,7 @@
       });
     }
 
+    renderHistoryStandings();
     loadDays();
     loadTeamsMap();
     subscribeToData();
