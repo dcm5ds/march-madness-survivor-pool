@@ -1619,6 +1619,23 @@
       const totalPlayers = playerDocs.length;
       const totalPot = totalPlayers * 5;
 
+      function isPlayerStillAlive(playerData, days) {
+  const picks = playerData.picks || {};
+
+  for (const day of days) {
+    const revealed = isDayRevealed(day);
+    if (!revealed) break;
+
+    const pick = picks[day.id] || "";
+    const losingTeams = day.losingTeams || [];
+
+    if (!pick || losingTeams.includes(pick)) {
+      return false;
+    }
+  }
+
+  return true;
+}
       document.getElementById("potTotal").innerText = "$" + totalPot;
 
       if (!days.length) {
@@ -1646,14 +1663,14 @@
 
       let aliveCount = 0;
 
-      playerDocs.forEach(playerDoc => {
-        const data = playerDoc.data();
-        const picks = data.picks || {};
-        const playerStatus = data.status || "alive";
+playerDocs.forEach(playerDoc => {
+  const data = playerDoc.data();
+  const picks = data.picks || {};
 
-        if (playerStatus === "alive") aliveCount++;
+  const isAlive = isPlayerStillAlive(data, days);
+  if (isAlive) aliveCount++;
 
-        let eliminatedReached = playerStatus === "eliminated";
+  let eliminatedReached = false;
         let row = `<tr>`;
         row += `<td>${data.name || playerDoc.id}</td>`;
 
